@@ -3,11 +3,13 @@ import { EpsilonGreedyBandit } from './banditBrain.js';
 const DAY_START = 6 * 60;
 const DAY_END = 22 * 60;
 const MAX_BAG = 12;
+const BOAT_RENT_COST = 100;
 
 const LOCATIONS = {
   home: { x: 80, y: 280 },
   lake: { x: 260, y: 220 },
   river: { x: 520, y: 120 },
+  ocean: { x: 730, y: 210 },
   market: { x: 450, y: 300 }
 };
 
@@ -23,6 +25,7 @@ export class FishingSimulation {
       minute: DAY_START,
       coins: 0,
       fishInventory: 0,
+      hasBoat: false,
       log: ['A new day begins. I need to choose where to fish.'],
       isPlaying: true,
       fisherPosition: { ...LOCATIONS.home },
@@ -38,6 +41,12 @@ export class FishingSimulation {
     if (!this.state.isPlaying) return;
     this.state.minute += minutes;
 
+    if (!this.state.hasBoat && this.state.coins >= BOAT_RENT_COST) {
+      this.state.coins -= BOAT_RENT_COST;
+      this.state.hasBoat = true;
+      this.state.log.unshift(`Rented a sturdy boat for ${BOAT_RENT_COST} coins. The ocean is now open!`);
+    }
+
     if (this.state.minute >= DAY_END && this.phase !== 'returning') {
       this.phase = 'returning';
       this.destination = 'home';
@@ -52,7 +61,8 @@ export class FishingSimulation {
           this.state.target = 'home';
           break;
         }
-        const choice = this.brain.chooseSpot();
+        const availableSpots = this.state.hasBoat ? ['lake', 'river', 'ocean'] : ['lake', 'river'];
+        const choice = this.brain.chooseSpot(availableSpots);
         this.lastChosenSpot = choice;
         this.destination = choice;
         this.state.target = choice;
@@ -123,7 +133,11 @@ export class FishingSimulation {
   }
 
   performFishing(spot) {
-    const fishCaught = spot === 'lake' ? 4 + Math.floor(Math.random() * 4) : 2 + Math.floor(Math.random() * 8);
+    let fishCaught;
+    if (spot === 'lake') fishCaught = 4 + Math.floor(Math.random() * 4);
+    else if (spot === 'river') fishCaught = 2 + Math.floor(Math.random() * 8);
+    else fishCaught = 10 + Math.floor(Math.random() * 8);
+
     const coinsPerFish = 3;
     return { fishCaught, coinsPerFish, totalCoins: fishCaught * coinsPerFish };
   }
@@ -131,7 +145,8 @@ export class FishingSimulation {
   finishDay() {
     const h = Math.floor(this.state.minute / 60) % 24;
     const m = this.state.minute % 60;
-    this.state.log.unshift(`Day ${this.state.day}: River was great today! Ended with ${this.state.coins} total coins at ${h}:${String(m).padStart(2, '0')}.`);
+    const strategy = this.state.hasBoat ? 'Ocean runs are paying off' : 'Still learning the shore waters';
+    this.state.log.unshift(`Day ${this.state.day}: ${strategy}. Ended with ${this.state.coins} coins at ${h}:${String(m).padStart(2, '0')}.`);
     this.state.day += 1;
     this.state.minute = DAY_START;
     this.fishTrips = 0;

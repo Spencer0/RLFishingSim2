@@ -8,7 +8,7 @@ app.innerHTML = `
   <header class="topbar glass">
     <div>
       <h1>🎣 RL Fishing Simulator</h1>
-      <p class="subtitle">Epsilon-greedy day planning: lake vs river</p>
+      <p class="subtitle">Epsilon-greedy day planning: lake vs river vs ocean (boat unlock)</p>
     </div>
     <button id="playPause" class="btn">Pause</button>
     <div id="stats" class="stats-pill"></div>
@@ -84,20 +84,23 @@ function drawScene() {
   ctx.fillStyle = ground;
   ctx.fillRect(0, h * 0.36, w, h * 0.64);
 
-  drawLake(220 * sx, 170 * sy, 160 * sx, 110 * sy, t);
-  drawRiver(470 * sx, 70 * sy, 210 * sx, 70 * sy, t);
+  drawLake(220 * sx, 170 * sy, 150 * sx, 100 * sy, t);
+  drawRiver(470 * sx, 70 * sy, 170 * sx, 60 * sy, t);
+  drawOcean(640 * sx, 150 * sy, 160 * sx, 130 * sy, t, s.hasBoat);
   drawHouse(72 * sx, 258 * sy, 98 * sx, 78 * sy);
   drawMarket(390 * sx, 258 * sy, 128 * sx, 94 * sy);
   drawFisherman(s.fisherPosition.x * sx, s.fisherPosition.y * sy, t);
 
   const hour = String(Math.floor(s.minute / 60) % 24).padStart(2, '0');
   const minute = String(s.minute % 60).padStart(2, '0');
-  stats.textContent = `Day ${s.day} · Time ${hour}:${minute} · 🐟 ${s.fishInventory} · 🪙 ${s.coins}`;
+  stats.textContent = `Day ${s.day} · Time ${hour}:${minute} · 🐟 ${s.fishInventory} · 🪙 ${s.coins} · ${s.hasBoat ? '⛵ Boat ready' : '🧾 Need 100 coins for boat'}`;
 
   brainEl.innerHTML = `
   <p><b>Epsilon</b>: ${s.brain.epsilon.toFixed(2)}</p>
   <p><b>Q(Lake)</b>: ${s.brain.qValues.lake.toFixed(2)} (${s.brain.visits.lake} visits)</p>
   <p><b>Q(River)</b>: ${s.brain.qValues.river.toFixed(2)} (${s.brain.visits.river} visits)</p>
+  <p><b>Q(Ocean)</b>: ${s.brain.qValues.ocean.toFixed(2)} (${s.brain.visits.ocean} visits)</p>
+  <p><b>Boat</b>: ${s.hasBoat ? 'Rented (ocean enabled)' : 'Not rented yet'}</p>
   <p><b>Total Reward</b>: ${s.brain.totalReward} coins</p>`;
 
   journalEl.innerHTML = s.log.slice(0, 10).map((item) => `<li>${item}</li>`).join('');
@@ -135,6 +138,38 @@ function drawRiver(x, y, w, h, t) {
   label('🏞️ River', x + 14, y + h - 14);
 }
 
+
+function drawOcean(x, y, w, h, t, hasBoat) {
+  const gradient = ctx.createLinearGradient(x, y, x, y + h);
+  gradient.addColorStop(0, '#0f4ea8');
+  gradient.addColorStop(1, '#0a2f6b');
+  ctx.fillStyle = gradient;
+  roundRect(x, y, w, h, 28, true);
+
+  for (let i = 0; i < 5; i += 1) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.32)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    const yy = y + 18 + i * 22;
+    ctx.moveTo(x + 14, yy);
+    for (let px = x + 14; px < x + w - 14; px += 16) {
+      ctx.lineTo(px, yy + Math.sin((px + t * 70) / 16 + i) * 4);
+    }
+    ctx.stroke();
+  }
+
+  if (hasBoat) {
+    ctx.font = '30px sans-serif';
+    ctx.fillText('⛵', x + w * 0.58, y + h * 0.5);
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,.85)';
+    ctx.font = '600 12px Inter, sans-serif';
+    ctx.fillText('Rent boat at 100 coins', x + 10, y + h - 16);
+  }
+
+  label('🌊 Ocean (High Reward)', x + 10, y + 24);
+}
+
 function drawHouse(x, y, w, h) {
   ctx.fillStyle = '#f6d39a';
   roundRect(x, y + h * 0.25, w, h * 0.75, 12, true);
@@ -163,6 +198,7 @@ function drawMarket(x, y, w, h) {
   roundRect(x + w * 0.36, y + h * 0.45, w * 0.28, h * 0.4, 4, true);
   label('🧺 Market', x + 10, y + h + 18);
 }
+
 function drawFisherman(x, y, t) {
   ctx.save();
   ctx.translate(x, y);
