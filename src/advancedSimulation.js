@@ -8,11 +8,11 @@ const STOCK_MULTIPLIER = { low: 0.55, medium: 1, high: 1.45 };
 const LOCATION_BASE_CATCH = { lake: 6, river: 7, ocean: 10 };
 
 const LOCATIONS = {
-  home: { x: 80, y: 280 },
-  lake: { x: 240, y: 220 },
-  river: { x: 480, y: 120 },
-  ocean: { x: 710, y: 220 },
-  market: { x: 420, y: 300 }
+  home: { x: 80, y: 380 },
+  lake: { x: 240, y: 320 },
+  river: { x: 480, y: 220 },
+  ocean: { x: 710, y: 320 },
+  market: { x: 420, y: 400 }
 };
 
 function lowerStock(stockLevel) {

@@ -13,6 +13,13 @@ let tickIntervalId = null;
 
 renderHomeScreen();
 
+
+function describeAdvancedState(stockLevels) {
+  const normalize = (value) => `${value[0].toUpperCase()}${value.slice(1)}`;
+  return `Lake ${normalize(stockLevels.lake)} · River ${normalize(stockLevels.river)} · Ocean ${normalize(stockLevels.ocean)}`;
+}
+
+
 function renderHomeScreen() {
   clearSimulationIntervals();
   app.innerHTML = `
@@ -110,9 +117,9 @@ function startSimulation(mode) {
     const hour = String(Math.floor(state.minute / 60) % 24).padStart(2, '0');
     const minute = String(state.minute % 60).padStart(2, '0');
     const extraStatus = state.mode === 'advanced'
-      ? `State ${state.stockLevels.lake[0].toUpperCase()}${state.stockLevels.river[0].toUpperCase()}${state.stockLevels.ocean[0].toUpperCase()}`
+      ? `State ${describeAdvancedState(state.stockLevels)}`
       : (state.hasBoat ? '⛵ Boat ready' : '🧾 Need 100 coins for boat');
-    statsElement.textContent = `Day ${state.day} · Time ${hour}:${minute} · 🐟 ${state.fishInventory} · 🪙 ${state.coins} · ${extraStatus}`;
+    statsElement.textContent = `Day ${state.day} · Time ${hour}:${minute} · 🐟 ${state.fishInventory} · Coins ${state.coins} · ${extraStatus}`;
 
     brainElement.innerHTML = renderBrainPanel(state);
     if (stockPanelElement) stockPanelElement.innerHTML = renderStockPanel(state);
@@ -126,13 +133,13 @@ function startSimulation(mode) {
 
 function renderBrainPanel(state) {
   if (state.mode === 'advanced') {
-    const stateKey = `${state.stockLevels.lake[0].toUpperCase()}${state.stockLevels.river[0].toUpperCase()}${state.stockLevels.ocean[0].toUpperCase()}`;
+    const stateKey = describeAdvancedState(state.stockLevels);
     const qValuesForState = state.brain.qTable?.[state.stockLevels.lake[0] + state.stockLevels.river[0] + state.stockLevels.ocean[0]]
       ?? { lake: 0, river: 0, ocean: 0 };
     return `
       <p><b>Epsilon</b>: ${state.brain.epsilon.toFixed(2)} | <b>Alpha</b>: ${state.brain.alpha.toFixed(2)} | <b>Gamma</b>: ${state.brain.gamma.toFixed(2)}</p>
       <p><b>Visited States</b>: ${state.brain.visitedStates} / 27</p>
-      <p><b>Current State</b>: ${stateKey} (Lake/River/Ocean stock)</p>
+      <p><b>Current State</b>: ${stateKey}</p>
       <p><b>Q(Lake)</b>: ${qValuesForState.lake.toFixed(2)}</p>
       <p><b>Q(River)</b>: ${qValuesForState.river.toFixed(2)}</p>
       <p><b>Q(Ocean)</b>: ${qValuesForState.ocean.toFixed(2)}</p>

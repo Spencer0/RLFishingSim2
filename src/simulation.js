@@ -6,11 +6,11 @@ const MAX_BAG = 12;
 const BOAT_RENT_COST = 100;
 
 const LOCATIONS = {
-  home: { x: 80, y: 280 },
-  lake: { x: 260, y: 220 },
-  river: { x: 520, y: 120 },
-  ocean: { x: 730, y: 210 },
-  market: { x: 450, y: 300 }
+  home: { x: 80, y: 380 },
+  lake: { x: 260, y: 320 },
+  river: { x: 520, y: 220 },
+  ocean: { x: 730, y: 310 },
+  market: { x: 450, y: 400 }
 };
 
 export class FishingSimulation {

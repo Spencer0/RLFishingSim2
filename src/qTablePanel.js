@@ -1,5 +1,6 @@
 const ACTIONS = ['lake', 'river', 'ocean'];
 const STOCK_LEVELS = ['l', 'm', 'h'];
+const STOCK_LABEL = { l: 'Low', m: 'Medium', h: 'High' };
 
 function formatQValue(value) {
   return Number(value ?? 0).toFixed(2);
@@ -65,6 +66,10 @@ function renderSimpleQTable(state) {
     </div>`;
 }
 
+function getVerboseStateLabel(stateKey) {
+  return `Lake ${STOCK_LABEL[stateKey[0]]} · River ${STOCK_LABEL[stateKey[1]]} · Ocean ${STOCK_LABEL[stateKey[2]]}`;
+}
+
 function renderAdvancedQTable(state) {
   const currentKey = `${state.stockLevels.lake[0]}${state.stockLevels.river[0]}${state.stockLevels.ocean[0]}`;
   const qTable = state.brain.qTable ?? {};
@@ -74,7 +79,7 @@ function renderAdvancedQTable(state) {
     const rowClass = stateKey === currentKey ? ' class="qtable-current-state"' : '';
     return `
       <tr${rowClass}>
-        <th scope="row">${stateKey.toUpperCase()}</th>
+        <th scope="row">${getVerboseStateLabel(stateKey)}</th>
         <td>${formatQValue(qTable[stateKey]?.lake)}</td>
         <td>${formatQValue(qTable[stateKey]?.river)}</td>
         <td>${formatQValue(qTable[stateKey]?.ocean)}</td>
@@ -82,7 +87,7 @@ function renderAdvancedQTable(state) {
   }).join('');
 
   return `
-    <p class="qtable-caption">Advanced mode tracks state rows and action columns. Highlighted row is the current state.</p>
+    <p class="qtable-caption">Advanced mode tracks state rows and action columns. Each row names Lake/River/Ocean stock levels explicitly, and the highlighted row is the current state.</p>
     <div class="qtable-wrap" tabindex="0" aria-label="Scrollable advanced Q table">
       <table class="qtable" aria-label="Advanced simulation Q table">
         <thead>
