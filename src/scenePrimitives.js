@@ -110,20 +110,73 @@ export function drawMarket(context, x, y, width, height) {
   context.fill();
 }
 
+const supportsPath2D = typeof Path2D !== 'undefined';
+
+const fisherSvgPaths = supportsPath2D
+  ? {
+      hat: new Path2D('M12 5 C18 2, 28 2, 34 6 L34 10 L12 10 Z'),
+      head: new Path2D('M18 11 C18 7.8, 20.8 5, 24 5 C27.2 5, 30 7.8, 30 11 C30 14.2, 27.2 17, 24 17 C20.8 17, 18 14.2, 18 11 Z'),
+      torso: new Path2D('M18 18 C20 17, 28 17, 30 18 L32 34 C29.5 37, 18.5 37, 16 34 Z'),
+      collar: new Path2D('M20 19 L28 19 L27 23 L21 23 Z'),
+      armBack: new Path2D('M18 20 C14 22, 14 30, 18 33 L20 31 C17 28, 17 24, 20 22 Z'),
+      armFront: new Path2D('M30 20 C34 22, 34 30, 30 33 L28 31 C31 28, 31 24, 28 22 Z'),
+      legBack: new Path2D('M19 34 L23 34 L21 48 L16 48 Z'),
+      legFront: new Path2D('M25 34 L29 34 L32 48 L27 48 Z'),
+      bootBack: new Path2D('M14 48 L22 48 L22 50 L12 50 Z'),
+      bootFront: new Path2D('M26 48 L34 48 L36 50 L25 50 Z')
+    }
+  : null;
+
 export function drawFisher(context, x, y, time) {
   context.save();
-  context.translate(x, y);
-  context.fillStyle = '#1f2937';
-  context.beginPath();
-  context.arc(0, -10, 8, 0, Math.PI * 2);
-  context.fill();
-  context.fillRect(-6, -2, 12, 16);
+  context.translate(x, y - 12);
+
+  if (fisherSvgPaths) {
+    context.save();
+    context.translate(-24, -28);
+
+    context.fillStyle = '#2b1d0e';
+    context.fill(fisherSvgPaths.hat);
+
+    context.fillStyle = '#ffcf9f';
+    context.fill(fisherSvgPaths.head);
+
+    context.fillStyle = '#345a7f';
+    context.fill(fisherSvgPaths.torso);
+
+    context.fillStyle = '#f1f5f9';
+    context.fill(fisherSvgPaths.collar);
+
+    context.fillStyle = '#2f4e6d';
+    context.fill(fisherSvgPaths.armBack);
+    context.fill(fisherSvgPaths.armFront);
+
+    context.fillStyle = '#4c3a2a';
+    context.fill(fisherSvgPaths.legBack);
+    context.fill(fisherSvgPaths.legFront);
+
+    context.fillStyle = '#1f2937';
+    context.fill(fisherSvgPaths.bootBack);
+    context.fill(fisherSvgPaths.bootFront);
+
+    context.strokeStyle = '#23364b';
+    context.lineWidth = 1.2;
+    context.stroke(fisherSvgPaths.torso);
+    context.restore();
+  } else {
+    context.fillStyle = '#1f2937';
+    context.beginPath();
+    context.arc(0, -10, 8, 0, Math.PI * 2);
+    context.fill();
+    context.fillRect(-6, -2, 12, 16);
+  }
 
   context.strokeStyle = '#2b6cb0';
-  context.lineWidth = 3;
+  context.lineWidth = 2.4;
   context.beginPath();
-  context.moveTo(6, 2);
-  context.lineTo(24, -8 + Math.sin(time * 4) * 2);
+  context.moveTo(7, -7);
+  context.lineTo(30, -21 + Math.sin(time * 4) * 1.8);
   context.stroke();
+
   context.restore();
 }

@@ -155,8 +155,10 @@ h2 { margin: 0 0 0.8rem; font-size: 1.1rem; color: #173553; }
 #journal li { margin: 0.35rem 0; line-height: 1.35; color: #23435f; }
 
 .qtable-caption { margin: 0 0 0.5rem; color: #244766; font-size: 0.88rem; }
-.qtable-wrap { max-height: 32vh; overflow: auto; border: 1px solid rgba(71, 113, 149, 0.2); border-radius: 10px; }
+.qtable-wrap { max-height: 32vh; overflow: auto; border: 1px solid rgba(71, 113, 149, 0.2); border-radius: 10px; overscroll-behavior: contain; }
+.qtable-wrap:focus-visible { outline: 2px solid #2d7def; outline-offset: 2px; }
 .qtable {
+  min-width: 520px;
   width: 100%;
   border-collapse: collapse;
   font-size: 0.83rem;
