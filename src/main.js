@@ -1,243 +1,155 @@
-import { FishingSimulation } from './simulation.js';
+import { FishingSimulation as SimpleFishingSimulation } from './simulation.js';
+import { AdvancedFishingSimulation } from './advancedSimulation.js';
+import { renderSimpleSimulationScene } from './simpleRenderer.js';
+import { renderAdvancedSimulationScene } from './advancedRenderer.js';
 
 const app = document.querySelector('#app');
 if (!app) throw new Error('Missing app');
 
-app.innerHTML = `
-<div class="layout">
-  <header class="topbar glass">
-    <div>
-      <h1>🎣 RL Fishing Simulator</h1>
-      <p class="subtitle">Epsilon-greedy day planning: lake vs river vs ocean (boat unlock)</p>
-    </div>
-    <button id="playPause" class="btn">Pause</button>
-    <div id="stats" class="stats-pill"></div>
-  </header>
-  <main class="content">
-    <section class="canvas-wrap glass">
-      <canvas id="world" width="800" height="500" aria-label="Fishing world"></canvas>
+let activeSimulation = null;
+let drawIntervalId = null;
+let tickIntervalId = null;
+
+renderHomeScreen();
+
+function renderHomeScreen() {
+  clearSimulationIntervals();
+  app.innerHTML = `
+  <div class="home-layout">
+    <section class="home-card glass">
+      <h1>🎣 RL Fishing Lab</h1>
+      <p class="subtitle">Choose a simulation to explore reinforcement learning behavior.</p>
+      <div class="menu-grid">
+        <button id="startSimple" class="menu-button">Simple Markov Simulation</button>
+        <button id="startAdvanced" class="menu-button">Advanced Markov Simulation</button>
+      </div>
     </section>
-    <aside class="panel-column">
-      <details open class="glass panel">
-        <summary>🧠 Brain</summary>
-        <div id="brain"></div>
-      </details>
-      <details open class="glass panel">
-        <summary>📓 Journal</summary>
-        <ul id="journal"></ul>
-      </details>
-    </aside>
-  </main>
-</div>`;
+  </div>`;
 
-const sim = new FishingSimulation();
-const canvas = document.querySelector('#world');
-const ctx = canvas.getContext('2d');
-const stats = document.querySelector('#stats');
-const brainEl = document.querySelector('#brain');
-const journalEl = document.querySelector('#journal');
-const playPauseButton = document.querySelector('#playPause');
-
-playPauseButton.addEventListener('click', () => {
-  sim.togglePlay();
-  playPauseButton.textContent = sim.getState().isPlaying ? 'Pause' : 'Play';
-});
-
-function drawScene() {
-  const s = sim.getState();
-  const rect = canvas.getBoundingClientRect();
-  const dpr = devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  const w = rect.width;
-  const h = rect.height;
-  const sx = w / 800;
-  const sy = h / 500;
-  const t = performance.now() / 1000;
-
-  // Sky + lighting
-  const sky = ctx.createLinearGradient(0, 0, 0, h);
-  sky.addColorStop(0, '#9ad8ff');
-  sky.addColorStop(0.5, '#d8f1ff');
-  sky.addColorStop(1, '#f2fbff');
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, w, h);
-
-  // Sun
-  const sunX = 90 * sx;
-  const sunY = 90 * sy;
-  const sunRadius = 36 * Math.min(sx, sy);
-  const sun = ctx.createRadialGradient(sunX, sunY, 8, sunX, sunY, sunRadius * 2.2);
-  sun.addColorStop(0, 'rgba(255,230,140,0.95)');
-  sun.addColorStop(1, 'rgba(255,230,140,0)');
-  ctx.fillStyle = sun;
-  ctx.beginPath();
-  ctx.arc(sunX, sunY, sunRadius * 2.2, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Ground
-  const ground = ctx.createLinearGradient(0, h * 0.4, 0, h);
-  ground.addColorStop(0, '#95d17a');
-  ground.addColorStop(1, '#6eb15f');
-  ctx.fillStyle = ground;
-  ctx.fillRect(0, h * 0.36, w, h * 0.64);
-
-  drawLake(220 * sx, 170 * sy, 150 * sx, 100 * sy, t);
-  drawRiver(470 * sx, 70 * sy, 170 * sx, 60 * sy, t);
-  drawOcean(640 * sx, 150 * sy, 160 * sx, 130 * sy, t, s.hasBoat);
-  drawHouse(72 * sx, 258 * sy, 98 * sx, 78 * sy);
-  drawMarket(390 * sx, 258 * sy, 128 * sx, 94 * sy);
-  drawFisherman(s.fisherPosition.x * sx, s.fisherPosition.y * sy, t);
-
-  const hour = String(Math.floor(s.minute / 60) % 24).padStart(2, '0');
-  const minute = String(s.minute % 60).padStart(2, '0');
-  stats.textContent = `Day ${s.day} · Time ${hour}:${minute} · 🐟 ${s.fishInventory} · 🪙 ${s.coins} · ${s.hasBoat ? '⛵ Boat ready' : '🧾 Need 100 coins for boat'}`;
-
-  brainEl.innerHTML = `
-  <p><b>Epsilon</b>: ${s.brain.epsilon.toFixed(2)}</p>
-  <p><b>Q(Lake)</b>: ${s.brain.qValues.lake.toFixed(2)} (${s.brain.visits.lake} visits)</p>
-  <p><b>Q(River)</b>: ${s.brain.qValues.river.toFixed(2)} (${s.brain.visits.river} visits)</p>
-  <p><b>Q(Ocean)</b>: ${s.brain.qValues.ocean.toFixed(2)} (${s.brain.visits.ocean} visits)</p>
-  <p><b>Boat</b>: ${s.hasBoat ? 'Rented (ocean enabled)' : 'Not rented yet'}</p>
-  <p><b>Total Reward</b>: ${s.brain.totalReward} coins</p>`;
-
-  journalEl.innerHTML = s.log.slice(0, 10).map((item) => `<li>${item}</li>`).join('');
+  document.querySelector('#startSimple')?.addEventListener('click', () => startSimulation('simple'));
+  document.querySelector('#startAdvanced')?.addEventListener('click', () => startSimulation('advanced'));
 }
 
-function drawLake(x, y, w, h, t) {
-  ctx.fillStyle = '#62b6ff';
-  roundRect(x, y, w, h, 26, true);
-  ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 4; i += 1) {
-    ctx.beginPath();
-    const yy = y + 20 + i * 18;
-    ctx.moveTo(x + 15, yy);
-    for (let px = x + 15; px < x + w - 15; px += 16) {
-      ctx.lineTo(px, yy + Math.sin((px + t * 80) / 20 + i) * 3);
-    }
-    ctx.stroke();
-  }
-  label('🌊 Lake', x + 12, y + 26);
+function startSimulation(mode) {
+  clearSimulationIntervals();
+  activeSimulation = mode === 'advanced' ? new AdvancedFishingSimulation() : new SimpleFishingSimulation();
+
+  app.innerHTML = `
+  <div class="layout">
+    <header class="topbar glass">
+      <div>
+        <h1>🎣 RL Fishing Simulator (${mode === 'advanced' ? 'Advanced' : 'Simple'})</h1>
+        <p class="subtitle">${mode === 'advanced'
+          ? 'Q-table over stock states (3^3) with replenishment dynamics'
+          : 'Epsilon-greedy day planning: lake vs river vs ocean (boat unlock)'}</p>
+      </div>
+      <button id="goHome" class="btn secondary">Home</button>
+      <button id="playPause" class="btn">Pause</button>
+      <div id="stats" class="stats-pill"></div>
+    </header>
+    <main class="content">
+      <section class="canvas-wrap glass">
+        <canvas id="world" width="800" height="500" aria-label="Fishing world"></canvas>
+      </section>
+      <aside class="panel-column">
+        <details open class="glass panel">
+          <summary>🧠 Brain</summary>
+          <div id="brain"></div>
+        </details>
+        ${mode === 'advanced' ? `<details open class="glass panel"><summary>📦 Stock System</summary><div id="stockPanel"></div></details>` : ''}
+        <details open class="glass panel">
+          <summary>📓 Journal</summary>
+          <ul id="journal"></ul>
+        </details>
+      </aside>
+    </main>
+  </div>`;
+
+  const canvas = document.querySelector('#world');
+  const context = canvas.getContext('2d');
+  const statsElement = document.querySelector('#stats');
+  const brainElement = document.querySelector('#brain');
+  const journalElement = document.querySelector('#journal');
+  const stockPanelElement = document.querySelector('#stockPanel');
+  const playPauseButton = document.querySelector('#playPause');
+
+  document.querySelector('#goHome')?.addEventListener('click', renderHomeScreen);
+
+  playPauseButton?.addEventListener('click', () => {
+    activeSimulation.togglePlay();
+    playPauseButton.textContent = activeSimulation.getState().isPlaying ? 'Pause' : 'Play';
+  });
+
+  const drawFrame = () => {
+    const state = activeSimulation.getState();
+    drawWorld(context, canvas, state);
+
+    const hour = String(Math.floor(state.minute / 60) % 24).padStart(2, '0');
+    const minute = String(state.minute % 60).padStart(2, '0');
+    const extraStatus = state.mode === 'advanced'
+      ? `State ${state.stockLevels.lake[0].toUpperCase()}${state.stockLevels.river[0].toUpperCase()}${state.stockLevels.ocean[0].toUpperCase()}`
+      : (state.hasBoat ? '⛵ Boat ready' : '🧾 Need 100 coins for boat');
+    statsElement.textContent = `Day ${state.day} · Time ${hour}:${minute} · 🐟 ${state.fishInventory} · 🪙 ${state.coins} · ${extraStatus}`;
+
+    brainElement.innerHTML = renderBrainPanel(state);
+    if (stockPanelElement) stockPanelElement.innerHTML = renderStockPanel(state);
+    journalElement.innerHTML = state.log.slice(0, 10).map((item) => `<li>${item}</li>`).join('');
+  };
+
+  tickIntervalId = setInterval(() => activeSimulation.tick(10), 220);
+  drawIntervalId = setInterval(drawFrame, 120);
 }
 
-function drawRiver(x, y, w, h, t) {
-  const gradient = ctx.createLinearGradient(x, y, x + w, y + h);
-  gradient.addColorStop(0, '#2f8fe8');
-  gradient.addColorStop(1, '#55d0ff');
-  ctx.fillStyle = gradient;
-  roundRect(x, y, w, h, 30, true);
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  for (let i = 0; i < 8; i += 1) {
-    ctx.beginPath();
-    ctx.ellipse(x + 22 + i * 22, y + 20 + Math.sin(t * 3 + i) * 4, 9, 3, 0, 0, Math.PI * 2);
-    ctx.fill();
+function renderBrainPanel(state) {
+  if (state.mode === 'advanced') {
+    const stateKey = `${state.stockLevels.lake[0].toUpperCase()}${state.stockLevels.river[0].toUpperCase()}${state.stockLevels.ocean[0].toUpperCase()}`;
+    const qValuesForState = state.brain.qTable?.[state.stockLevels.lake[0] + state.stockLevels.river[0] + state.stockLevels.ocean[0]]
+      ?? { lake: 0, river: 0, ocean: 0 };
+    return `
+      <p><b>Epsilon</b>: ${state.brain.epsilon.toFixed(2)} | <b>Alpha</b>: ${state.brain.alpha.toFixed(2)} | <b>Gamma</b>: ${state.brain.gamma.toFixed(2)}</p>
+      <p><b>Visited States</b>: ${state.brain.visitedStates} / 27</p>
+      <p><b>Current State</b>: ${stateKey} (Lake/River/Ocean stock)</p>
+      <p><b>Q(Lake)</b>: ${qValuesForState.lake.toFixed(2)}</p>
+      <p><b>Q(River)</b>: ${qValuesForState.river.toFixed(2)}</p>
+      <p><b>Q(Ocean)</b>: ${qValuesForState.ocean.toFixed(2)}</p>
+      <p><b>Total Reward</b>: ${state.brain.totalReward.toFixed(1)} coins</p>`;
   }
-  label('🏞️ River', x + 14, y + h - 14);
+
+  return `
+    <p><b>Epsilon</b>: ${state.brain.epsilon.toFixed(2)}</p>
+    <p><b>Q(Lake)</b>: ${state.brain.qValues.lake.toFixed(2)} (${state.brain.visits.lake} visits)</p>
+    <p><b>Q(River)</b>: ${state.brain.qValues.river.toFixed(2)} (${state.brain.visits.river} visits)</p>
+    <p><b>Q(Ocean)</b>: ${state.brain.qValues.ocean.toFixed(2)} (${state.brain.visits.ocean} visits)</p>
+    <p><b>Boat</b>: ${state.hasBoat ? 'Rented (ocean enabled)' : 'Not rented yet'}</p>
+    <p><b>Total Reward</b>: ${state.brain.totalReward} coins</p>`;
 }
 
+function renderStockPanel(state) {
+  const row = (spot) => {
+    const timer = state.replenishTimers[spot];
+    return `<p><b>${spot}</b>: ${state.stockLevels[spot].toUpperCase()} · regrowth queue ${timer.pendingLevels} · next bloom in ${timer.daysUntilReplenish} day(s)</p>`;
+  };
 
-function drawOcean(x, y, w, h, t, hasBoat) {
-  const gradient = ctx.createLinearGradient(x, y, x, y + h);
-  gradient.addColorStop(0, '#0f4ea8');
-  gradient.addColorStop(1, '#0a2f6b');
-  ctx.fillStyle = gradient;
-  roundRect(x, y, w, h, 28, true);
+  return `
+    <p>These waters breathe: each trip pressures local fish populations, and recovery rolls forward over time.</p>
+    <p>Use this panel to track each habitat's health and upcoming regrowth cycles.</p>
+    ${row('lake')}
+    ${row('river')}
+    ${row('ocean')}`;
+}
 
-  for (let i = 0; i < 5; i += 1) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.32)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    const yy = y + 18 + i * 22;
-    ctx.moveTo(x + 14, yy);
-    for (let px = x + 14; px < x + w - 14; px += 16) {
-      ctx.lineTo(px, yy + Math.sin((px + t * 70) / 16 + i) * 4);
-    }
-    ctx.stroke();
-  }
-
-  if (hasBoat) {
-    ctx.font = '30px sans-serif';
-    ctx.fillText('⛵', x + w * 0.58, y + h * 0.5);
+function drawWorld(ctx, canvas, state) {
+  if (state.mode === 'advanced') {
+    renderAdvancedSimulationScene(ctx, canvas, state);
   } else {
-    ctx.fillStyle = 'rgba(255,255,255,.85)';
-    ctx.font = '600 12px Inter, sans-serif';
-    ctx.fillText('Rent boat at 100 coins', x + 10, y + h - 16);
+    renderSimpleSimulationScene(ctx, canvas, state);
   }
-
-  label('🌊 Ocean (High Reward)', x + 10, y + 24);
 }
 
-function drawHouse(x, y, w, h) {
-  ctx.fillStyle = '#f6d39a';
-  roundRect(x, y + h * 0.25, w, h * 0.75, 12, true);
-  ctx.fillStyle = '#c06a4e';
-  ctx.beginPath();
-  ctx.moveTo(x - 8, y + h * 0.3);
-  ctx.lineTo(x + w / 2, y - 18);
-  ctx.lineTo(x + w + 8, y + h * 0.3);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = '#6b4d2d';
-  roundRect(x + w * 0.4, y + h * 0.58, w * 0.2, h * 0.42, 5, true);
-  label('🏠 Home', x + 8, y + h + 18);
+function clearSimulationIntervals() {
+  if (drawIntervalId) clearInterval(drawIntervalId);
+  if (tickIntervalId) clearInterval(tickIntervalId);
+  drawIntervalId = null;
+  tickIntervalId = null;
+  activeSimulation = null;
 }
-
-function drawMarket(x, y, w, h) {
-  ctx.fillStyle = '#fefefe';
-  roundRect(x, y + 10, w, h - 10, 10, true);
-  ctx.fillStyle = '#ff6b6b';
-  roundRect(x, y, w, 20, 6, true);
-  ctx.fillStyle = '#fffcf2';
-  for (let i = 0; i < 5; i += 1) {
-    ctx.fillRect(x + i * (w / 5), y, w / 10, 20);
-  }
-  ctx.fillStyle = '#5f6f52';
-  roundRect(x + w * 0.36, y + h * 0.45, w * 0.28, h * 0.4, 4, true);
-  label('🧺 Market', x + 10, y + h + 18);
-}
-
-function drawFisherman(x, y, t) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.fillStyle = '#1f2937';
-  ctx.beginPath();
-  ctx.arc(0, -10, 8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillRect(-6, -2, 12, 16);
-  ctx.strokeStyle = '#3b82f6';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(6, 2);
-  ctx.lineTo(22, -8 + Math.sin(t * 4) * 2);
-  ctx.stroke();
-  ctx.fillStyle = '#f59e0b';
-  ctx.beginPath();
-  ctx.arc(24, -10 + Math.sin(t * 4) * 2, 3, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.font = '18px sans-serif';
-  ctx.fillText('🎣', -8, -18);
-  ctx.restore();
-}
-
-function label(text, x, y) {
-  ctx.fillStyle = 'rgba(17,24,39,.75)';
-  ctx.font = '600 16px Inter, sans-serif';
-  ctx.fillText(text, x, y);
-}
-
-function roundRect(x, y, width, height, radius, fill) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.arcTo(x + width, y, x + width, y + height, radius);
-  ctx.arcTo(x + width, y + height, x, y + height, radius);
-  ctx.arcTo(x, y + height, x, y, radius);
-  ctx.arcTo(x, y, x + width, y, radius);
-  ctx.closePath();
-  if (fill) ctx.fill();
-}
-
-setInterval(() => sim.tick(10), 220);
-setInterval(drawScene, 120);
