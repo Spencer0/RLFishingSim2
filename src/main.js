@@ -2,6 +2,7 @@ import { FishingSimulation as SimpleFishingSimulation } from './simulation.js';
 import { AdvancedFishingSimulation } from './advancedSimulation.js';
 import { renderSimpleSimulationScene } from './simpleRenderer.js';
 import { renderAdvancedSimulationScene } from './advancedRenderer.js';
+import { renderQTablePanel } from './qTablePanel.js';
 
 const app = document.querySelector('#app');
 if (!app) throw new Error('Missing app');
@@ -51,17 +52,21 @@ function startSimulation(mode) {
       <section class="canvas-wrap glass">
         <canvas id="world" width="800" height="500" aria-label="Fishing world"></canvas>
       </section>
-      <aside class="panel-column">
-        <details open class="glass panel">
-          <summary>🧠 Brain</summary>
-          <div id="brain"></div>
-        </details>
-        ${mode === 'advanced' ? `<details open class="glass panel"><summary>📦 Stock System</summary><div id="stockPanel"></div></details>` : ''}
-        <details open class="glass panel">
-          <summary>📓 Journal</summary>
-          <ul id="journal"></ul>
-        </details>
-      </aside>
+      <section class="simulation-details glass" aria-label="Simulation details">
+        <h2>Simulation Details</h2>
+        <div class="details-tabs" role="tablist" aria-label="Simulation detail tabs">
+          <button class="detail-tab active" role="tab" aria-selected="true" aria-controls="journalPane" data-tab="journalPane">📓 Journal</button>
+          <button class="detail-tab" role="tab" aria-selected="false" aria-controls="brainPane" data-tab="brainPane">🧠 Brain</button>
+          <button class="detail-tab" role="tab" aria-selected="false" aria-controls="qTablePane" data-tab="qTablePane">🗂️ Q Table</button>
+          ${mode === 'advanced' ? '<button class="detail-tab" role="tab" aria-selected="false" aria-controls="stockPane" data-tab="stockPane">📦 Stock</button>' : ''}
+        </div>
+        <div class="details-panes">
+          <section id="journalPane" class="details-pane active" role="tabpanel"><ul id="journal"></ul></section>
+          <section id="brainPane" class="details-pane" role="tabpanel"><div id="brain"></div></section>
+          <section id="qTablePane" class="details-pane" role="tabpanel"><div id="qtable"></div></section>
+          ${mode === 'advanced' ? '<section id="stockPane" class="details-pane" role="tabpanel"><div id="stockPanel"></div></section>' : ''}
+        </div>
+      </section>
     </main>
   </div>`;
 
@@ -70,8 +75,26 @@ function startSimulation(mode) {
   const statsElement = document.querySelector('#stats');
   const brainElement = document.querySelector('#brain');
   const journalElement = document.querySelector('#journal');
+  const qTableElement = document.querySelector('#qtable');
   const stockPanelElement = document.querySelector('#stockPanel');
   const playPauseButton = document.querySelector('#playPause');
+  const tabButtons = [...document.querySelectorAll('.detail-tab')];
+
+  const activateTab = (tabId) => {
+    for (const button of tabButtons) {
+      const isActive = button.dataset.tab === tabId;
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-selected', String(isActive));
+    }
+
+    for (const pane of document.querySelectorAll('.details-pane')) {
+      pane.classList.toggle('active', pane.id === tabId);
+    }
+  };
+
+  tabButtons.forEach((button) => {
+    button.addEventListener('click', () => activateTab(button.dataset.tab));
+  });
 
   document.querySelector('#goHome')?.addEventListener('click', renderHomeScreen);
 
@@ -93,6 +116,7 @@ function startSimulation(mode) {
 
     brainElement.innerHTML = renderBrainPanel(state);
     if (stockPanelElement) stockPanelElement.innerHTML = renderStockPanel(state);
+    if (qTableElement) qTableElement.innerHTML = renderQTablePanel(state);
     journalElement.innerHTML = state.log.slice(0, 10).map((item) => `<li>${item}</li>`).join('');
   };
 
