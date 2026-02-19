@@ -88,7 +88,6 @@ function drawScene() {
   drawRiver(470 * sx, 70 * sy, 210 * sx, 70 * sy, t);
   drawHouse(72 * sx, 258 * sy, 98 * sx, 78 * sy);
   drawMarket(390 * sx, 258 * sy, 128 * sx, 94 * sy);
-  drawPath(sx, sy);
   drawFisherman(s.fisherPosition.x * sx, s.fisherPosition.y * sy, t);
 
   const hour = String(Math.floor(s.minute / 60) % 24).padStart(2, '0');
@@ -164,18 +163,6 @@ function drawMarket(x, y, w, h) {
   roundRect(x + w * 0.36, y + h * 0.45, w * 0.28, h * 0.4, 4, true);
   label('🧺 Market', x + 10, y + h + 18);
 }
-
-function drawPath(sx, sy) {
-  ctx.strokeStyle = 'rgba(168,117,74,.45)';
-  ctx.lineWidth = 16 * Math.min(sx, sy);
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(130 * sx, 340 * sy);
-  ctx.quadraticCurveTo(245 * sx, 322 * sy, 392 * sx, 322 * sy);
-  ctx.quadraticCurveTo(460 * sx, 270 * sy, 560 * sx, 130 * sy);
-  ctx.stroke();
-}
-
 function drawFisherman(x, y, t) {
   ctx.save();
   ctx.translate(x, y);
