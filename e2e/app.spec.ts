@@ -18,6 +18,10 @@ test('can launch advanced simulation with stock panel', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Advanced Markov Simulation' }).click();
   await expect(page.getByRole('heading', { name: /RL Fishing Simulator \(Advanced\)/ })).toBeVisible();
-  await expect(page.getByText(/Stock System/)).toBeVisible();
+
+  await page.getByRole('tab', { name: /Stock/ }).click();
+  await expect(page.getByText(/Use this panel to track each habitat's health/)).toBeVisible();
+
+  await page.getByRole('tab', { name: /Brain/ }).click();
   await expect(page.getByText(/Visited States/)).toBeVisible();
 });
