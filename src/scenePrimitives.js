@@ -71,50 +71,80 @@ export function drawWater(context, { label, x, y, width, height, colorA, colorB,
 
   context.fillStyle = 'rgba(255,255,255,0.93)';
   context.font = '700 14px Inter, sans-serif';
-  context.fillText(`${label}${stockLevel ? ` · ${stockLevel.toUpperCase()}` : ''}`, x + 10, y + 22);
+  const stockFish = { low: '🐟', medium: '🐟🐟', high: '🐟🐟🐟' };
+  context.fillText(label, x + 10, y + 22);
+  if (stockLevel) {
+    context.fillText(stockFish[stockLevel] ?? '', x + 10, y + 42);
+  }
 }
 
 export function drawHouse(context, x, y, width, height) {
-  context.fillStyle = '#f5d29b';
-  roundRect(context, x, y + height * 0.23, width, height * 0.77, 12);
-  context.fillStyle = '#c4654d';
+  context.save();
+  context.translate(x, y);
+
+  context.fillStyle = '#f3d4a4';
+  roundRect(context, 0, height * 0.22, width, height * 0.78, 12);
+
+  context.fillStyle = '#bf5944';
   context.beginPath();
-  context.moveTo(x - 8, y + height * 0.3);
-  context.lineTo(x + width / 2, y - 18);
-  context.lineTo(x + width + 8, y + height * 0.3);
+  context.moveTo(-10, height * 0.3);
+  context.lineTo(width / 2, -height * 0.18);
+  context.lineTo(width + 10, height * 0.3);
   context.closePath();
   context.fill();
-  context.fillStyle = '#704a2f';
-  roundRect(context, x + width * 0.42, y + height * 0.58, width * 0.18, height * 0.42, 4);
+
+  context.fillStyle = '#fff3dd';
+  roundRect(context, width * 0.12, height * 0.44, width * 0.2, height * 0.18, 4);
+  roundRect(context, width * 0.66, height * 0.44, width * 0.2, height * 0.18, 4);
+
+  context.fillStyle = '#6b4b31';
+  roundRect(context, width * 0.42, height * 0.56, width * 0.18, height * 0.44, 4);
+
+  context.fillStyle = '#83b96a';
+  context.beginPath();
+  context.arc(width * 0.05, height * 0.85, height * 0.12, 0, Math.PI * 2);
+  context.arc(width * 0.95, height * 0.85, height * 0.12, 0, Math.PI * 2);
+  context.fill();
+
+  context.restore();
 }
 
 export function drawMarket(context, x, y, width, height) {
-  context.fillStyle = '#fff5ea';
-  roundRect(context, x, y + 16, width, height - 16, 12);
+  context.save();
+  context.translate(x, y);
 
-  context.fillStyle = '#ff6b6b';
-  roundRect(context, x, y, width, 24, 6);
+  context.fillStyle = '#fff6eb';
+  roundRect(context, 0, height * 0.2, width, height * 0.8, 12);
 
-  context.fillStyle = '#fffef8';
-  for (let stripeIndex = 0; stripeIndex < 6; stripeIndex += 1) {
-    context.fillRect(x + stripeIndex * (width / 6), y, width / 12, 24);
+  context.fillStyle = '#ff6f61';
+  roundRect(context, -4, 0, width + 8, height * 0.26, 8);
+
+  context.fillStyle = '#fffdf4';
+  for (let stripeIndex = 0; stripeIndex < 5; stripeIndex += 1) {
+    roundRect(context, stripeIndex * (width / 5) + width * 0.06, height * 0.02, width * 0.08, height * 0.2, 4);
   }
 
-  context.fillStyle = '#8ea56a';
-  roundRect(context, x + width * 0.33, y + height * 0.5, width * 0.34, height * 0.38, 6);
+  context.fillStyle = '#82ab5f';
+  roundRect(context, width * 0.3, height * 0.54, width * 0.4, height * 0.38, 6);
 
-  context.fillStyle = '#d58536';
+  context.fillStyle = '#d18f3f';
   context.beginPath();
-  context.arc(x + width * 0.22, y + height * 0.58, 7, 0, Math.PI * 2);
-  context.arc(x + width * 0.78, y + height * 0.58, 7, 0, Math.PI * 2);
+  context.arc(width * 0.2, height * 0.58, height * 0.08, 0, Math.PI * 2);
+  context.arc(width * 0.8, height * 0.58, height * 0.08, 0, Math.PI * 2);
   context.fill();
+
+  context.fillStyle = '#4f6f47';
+  context.font = `${Math.max(11, Math.round(height * 0.14))}px Inter, sans-serif`;
+  context.fillText('MARKET', width * 0.24, height * 0.47);
+
+  context.restore();
 }
 
 const supportsPath2D = typeof Path2D !== 'undefined';
 
 const fisherSvgPaths = supportsPath2D
   ? {
-      hat: new Path2D('M12 5 C18 2, 28 2, 34 6 L34 10 L12 10 Z'),
+      hat: new Path2D('M14 6 C19 2, 29 2, 33 6 L32 10 L14 10 Z'),
       head: new Path2D('M18 11 C18 7.8, 20.8 5, 24 5 C27.2 5, 30 7.8, 30 11 C30 14.2, 27.2 17, 24 17 C20.8 17, 18 14.2, 18 11 Z'),
       torso: new Path2D('M18 18 C20 17, 28 17, 30 18 L32 34 C29.5 37, 18.5 37, 16 34 Z'),
       collar: new Path2D('M20 19 L28 19 L27 23 L21 23 Z'),

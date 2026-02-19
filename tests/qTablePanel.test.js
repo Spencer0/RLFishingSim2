@@ -33,7 +33,7 @@ describe('renderQTablePanel', () => {
     });
 
     expect(html).toContain('Advanced simulation Q table');
-    expect(html).toContain('<th scope="row">HML</th>');
+    expect(html).toContain('<th scope="row">Lake High · River Medium · Ocean Low</th>');
     expect(html).toContain('<td>2.34</td>');
     expect((html.match(/qtable-current-state/g) ?? []).length).toBe(1);
     expect((html.match(/<tr/g) ?? []).length - 1).toBe(27);
