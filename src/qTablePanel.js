@@ -36,7 +36,7 @@ function renderSimpleQTable(state) {
 
   return `
     <p class="qtable-caption">Simple mode has a single shared state and per-action Q values.</p>
-    <div class="qtable-wrap">
+    <div class="qtable-wrap" tabindex="0" aria-label="Scrollable simple Q table">
       <table class="qtable" aria-label="Simple simulation Q table">
         <thead>
           <tr><th>State</th><th>Lake</th><th>River</th><th>Ocean</th></tr>
@@ -83,7 +83,7 @@ function renderAdvancedQTable(state) {
 
   return `
     <p class="qtable-caption">Advanced mode tracks state rows and action columns. Highlighted row is the current state.</p>
-    <div class="qtable-wrap">
+    <div class="qtable-wrap" tabindex="0" aria-label="Scrollable advanced Q table">
       <table class="qtable" aria-label="Advanced simulation Q table">
         <thead>
           <tr><th>State</th><th>Lake</th><th>River</th><th>Ocean</th></tr>
