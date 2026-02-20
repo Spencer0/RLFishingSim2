@@ -5,6 +5,17 @@ import { renderPOMDPMathPanel } from './pomdpMathPanel.js';
 import { dominantBelief } from './pomdpBrain.js';
 import { computeBeliefAccuracy } from './pomdpSimulation.js';
 
+const MODE_STATUS_META = {
+  simple: { inventoryEmoji: '🐟', inventoryLabel: 'Catch' },
+  advanced: { inventoryEmoji: '🐟', inventoryLabel: 'Catch' },
+  pomdp: { inventoryEmoji: '💊', inventoryLabel: 'Cures' }
+};
+
+export function formatStatusReadout(state) {
+  const meta = MODE_STATUS_META[state.mode] ?? MODE_STATUS_META.simple;
+  return `Day ${state.day} · ${meta.inventoryEmoji} ${state.fishInventory} ${meta.inventoryLabel} · Coins ${state.coins}`;
+}
+
 export class SimulationPanelController {
   constructor({ statsElement, brainElement, journalElement, qTableElement, stockPanelElement, mathElement, tabButtons }) {
     this.statsElement = statsElement;
@@ -37,7 +48,7 @@ export class SimulationPanelController {
   }
 
   refresh(state) {
-    this.statsElement.textContent = `Day ${state.day} · 🐟 ${state.fishInventory} · Coins ${state.coins}`;
+    this.statsElement.textContent = formatStatusReadout(state);
 
     this.brainElement.innerHTML = renderBrainPanel(state);
     if (this.stockPanelElement) this.stockPanelElement.innerHTML = renderStockPanel(state);

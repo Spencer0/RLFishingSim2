@@ -22,5 +22,7 @@ describe('SimulationCatalog', () => {
 it('includes pomdp mode in default catalog', () => {
   const catalog = createDefaultSimulationCatalog();
   expect(catalog.listModes()).toContain('pomdp');
-  expect(catalog.get('pomdp')?.label).toBe('POMDP');
+  expect(catalog.get('pomdp')?.label).toBe('Wildlife Rescue (POMDP)');
+  expect(catalog.get('pomdp')?.homeEmoji).toBe('🦌');
+  expect(catalog.get('advanced')?.homeButtonLabel).toContain('Fishing');
 });
