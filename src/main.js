@@ -51,11 +51,18 @@ function startSimulation(mode) {
       </div>
       <button id="goHome" class="btn secondary">Home</button>
       <button id="playPause" class="btn">Pause</button>
+      <div class="sim-speed-wrap" aria-label="Simulation speed controls">
+        <label for="simSpeed" class="sim-speed-label">Speed <span id="simSpeedValue">10x</span></label>
+        <input id="simSpeed" class="sim-speed-slider" type="range" min="1" max="100" step="1" value="10" aria-label="Simulation speed from one to one hundred times" />
+      </div>
       <div id="stats" class="stats-pill"></div>
     </header>
     <main class="content">
       <section class="canvas-wrap glass">
-        <canvas id="world" width="800" height="500" aria-label="Fishing world"></canvas>
+        <div class="canvas-shell" id="canvasShell">
+          <canvas id="world" width="800" height="500" aria-label="Fishing world"></canvas>
+          <div id="fastForwardBadge" class="fast-forward-badge" aria-hidden="true">⏩ Fast forward</div>
+        </div>
       </section>
       <section class="simulation-details glass" aria-label="Simulation details">
         <h2>Simulation Details</h2>
@@ -78,6 +85,17 @@ function startSimulation(mode) {
   const canvas = document.querySelector('#world');
   const context = canvas.getContext('2d');
   const playPauseButton = document.querySelector('#playPause');
+  const speedSlider = document.querySelector('#simSpeed');
+  const speedValue = document.querySelector('#simSpeedValue');
+  const canvasShell = document.querySelector('#canvasShell');
+  const fastForwardBadge = document.querySelector('#fastForwardBadge');
+
+  const setSpeedUiState = (speed) => {
+    if (speedValue) speedValue.textContent = `${speed}x`;
+    const isFastForwarding = speed > 20;
+    canvasShell?.classList.toggle('fast-forward-active', isFastForwarding);
+    fastForwardBadge?.classList.toggle('visible', isFastForwarding);
+  };
 
   const panelController = new SimulationPanelController({
     statsElement: document.querySelector('#stats'),
@@ -88,6 +106,13 @@ function startSimulation(mode) {
     tabButtons: [...document.querySelectorAll('.detail-tab')]
   });
   panelController.bindTabs();
+
+  speedSlider?.addEventListener('input', (event) => {
+    const speed = Number(event.target.value);
+    simulationLoop.setSimulationSpeed(speed);
+    setSpeedUiState(speed);
+    panelController.refresh(activeSimulation.getState());
+  });
 
   let lastPanelRenderKey = '';
   const refreshPanels = () => {
@@ -102,6 +127,10 @@ function startSimulation(mode) {
     playPauseButton.textContent = activeSimulation.getState().isPlaying ? 'Pause' : 'Play';
     refreshPanels();
   });
+
+  simulationLoop.setSimulationSpeed(10);
+  if (speedSlider) speedSlider.value = String(simulationLoop.getSimulationSpeed());
+  setSpeedUiState(simulationLoop.getSimulationSpeed());
 
   refreshPanels();
   simulationLoop.start({
