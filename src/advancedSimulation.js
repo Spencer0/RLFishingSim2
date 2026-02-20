@@ -49,9 +49,9 @@ export class AdvancedFishingSimulation {
       target: null,
       stockLevels: { lake: 'high', river: 'high', ocean: 'high' },
       replenishTimers: {
-        lake: { pendingLevels: 0, daysUntilReplenish: 0 },
-        river: { pendingLevels: 0, daysUntilReplenish: 0 },
-        ocean: { pendingLevels: 0, daysUntilReplenish: 0 }
+        lake: { pendingLevels: 0, actionsUntilReplenish: 0 },
+        river: { pendingLevels: 0, actionsUntilReplenish: 0 },
+        ocean: { pendingLevels: 0, actionsUntilReplenish: 0 }
       },
       brain: this.brain.snapshot()
     };
@@ -155,22 +155,26 @@ export class AdvancedFishingSimulation {
     if (previousLevel !== loweredLevel) {
       const timer = this.state.replenishTimers[spot];
       timer.pendingLevels += 1;
-      if (timer.daysUntilReplenish === 0) {
-        timer.daysUntilReplenish = 2;
+      if (timer.actionsUntilReplenish === 0) {
+        timer.actionsUntilReplenish = 2;
       }
     }
+
+    this.progressOtherSpotsReplenishment(spot);
   }
 
-  applyDailyReplenishment() {
+  progressOtherSpotsReplenishment(fishedSpot) {
     for (const spot of ['lake', 'river', 'ocean']) {
+      if (spot === fishedSpot) continue;
+
       const timer = this.state.replenishTimers[spot];
       if (timer.pendingLevels <= 0) continue;
 
-      timer.daysUntilReplenish -= 1;
-      if (timer.daysUntilReplenish <= 0) {
+      timer.actionsUntilReplenish -= 1;
+      if (timer.actionsUntilReplenish <= 0) {
         this.state.stockLevels[spot] = higherStock(this.state.stockLevels[spot]);
         timer.pendingLevels -= 1;
-        timer.daysUntilReplenish = timer.pendingLevels > 0 ? 2 : 0;
+        timer.actionsUntilReplenish = timer.pendingLevels > 0 ? 2 : 0;
       }
     }
   }
@@ -203,7 +207,6 @@ export class AdvancedFishingSimulation {
   }
 
   finishDay() {
-    this.applyDailyReplenishment();
     const hour = Math.floor(this.state.minute / 60) % 24;
     const minute = this.state.minute % 60;
     this.state.log.unshift(

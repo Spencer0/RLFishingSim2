@@ -90,7 +90,7 @@ function renderBrainPanel(state) {
 function renderStockPanel(state) {
   const row = (spot) => {
     const timer = state.replenishTimers[spot];
-    return `<p><b>${spot}</b>: ${state.stockLevels[spot].toUpperCase()} · regrowth queue ${timer.pendingLevels} · next bloom in ${timer.daysUntilReplenish} day(s)</p>`;
+    return `<p><b>${spot}</b>: ${state.stockLevels[spot].toUpperCase()} · regrowth queue ${timer.pendingLevels} · next bloom in ${timer.actionsUntilReplenish} action(s)</p>`;
   };
 
   return `

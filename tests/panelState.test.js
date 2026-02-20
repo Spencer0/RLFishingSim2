@@ -31,9 +31,9 @@ describe('buildPanelRenderKey', () => {
       isPlaying: true,
       stockLevels: { lake: 'high', river: 'medium', ocean: 'low' },
       replenishTimers: {
-        lake: { pendingLevels: 0, daysUntilReplenish: 0 },
-        river: { pendingLevels: 0, daysUntilReplenish: 0 },
-        ocean: { pendingLevels: 0, daysUntilReplenish: 0 }
+        lake: { pendingLevels: 0, actionsUntilReplenish: 0 },
+        river: { pendingLevels: 0, actionsUntilReplenish: 0 },
+        ocean: { pendingLevels: 0, actionsUntilReplenish: 0 }
       },
       brain: {
         epsilon: 0.2,
