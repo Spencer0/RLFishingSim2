@@ -3,9 +3,9 @@ import { TabularMarkovBrain } from './markovBrain.js';
 const DAY_START = 6 * 60;
 const DAY_END = 22 * 60;
 const MAX_BAG = 14;
-const STOCK_LEVELS = ['low', 'medium', 'high'];
 const STOCK_MULTIPLIER = { low: 0.55, medium: 1, high: 1.45 };
 const LOCATION_BASE_CATCH = { lake: 6, river: 7, ocean: 10 };
+const STOCK_ABBREVIATION = { low: 'l', medium: 'm', high: 'h' };
 
 const LOCATIONS = {
   home: { x: 80, y: 380 },
@@ -60,8 +60,7 @@ export class AdvancedFishingSimulation {
   togglePlay() { this.state.isPlaying = !this.state.isPlaying; }
 
   computeStateKey() {
-    const map = { low: 'l', medium: 'm', high: 'h' };
-    return `${map[this.state.stockLevels.lake]}${map[this.state.stockLevels.river]}${map[this.state.stockLevels.ocean]}`;
+    return `${STOCK_ABBREVIATION[this.state.stockLevels.lake]}${STOCK_ABBREVIATION[this.state.stockLevels.river]}${STOCK_ABBREVIATION[this.state.stockLevels.ocean]}`;
   }
 
   tick(minutes = 10) {
@@ -180,20 +179,20 @@ export class AdvancedFishingSimulation {
   }
 
   moveToward(destination) {
-    const target = LOCATIONS[destination];
-    const position = this.state.fisherPosition;
-    const deltaX = target.x - position.x;
-    const deltaY = target.y - position.y;
+    const destinationPoint = LOCATIONS[destination];
+    const fisherPosition = this.state.fisherPosition;
+    const deltaX = destinationPoint.x - fisherPosition.x;
+    const deltaY = destinationPoint.y - fisherPosition.y;
     const distance = Math.hypot(deltaX, deltaY);
 
     if (distance < 12) {
-      position.x = target.x;
-      position.y = target.y;
+      fisherPosition.x = destinationPoint.x;
+      fisherPosition.y = destinationPoint.y;
       return true;
     }
 
-    position.x += (deltaX / distance) * 18;
-    position.y += (deltaY / distance) * 18;
+    fisherPosition.x += (deltaX / distance) * 18;
+    fisherPosition.y += (deltaY / distance) * 18;
     return false;
   }
 

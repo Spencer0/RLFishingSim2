@@ -117,18 +117,18 @@ export class FishingSimulation {
   }
 
   moveToward(destination) {
-    const target = LOCATIONS[destination];
-    const p = this.state.fisherPosition;
-    const dx = target.x - p.x;
-    const dy = target.y - p.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 12) {
-      p.x = target.x;
-      p.y = target.y;
+    const destinationPoint = LOCATIONS[destination];
+    const fisherPosition = this.state.fisherPosition;
+    const deltaX = destinationPoint.x - fisherPosition.x;
+    const deltaY = destinationPoint.y - fisherPosition.y;
+    const distance = Math.hypot(deltaX, deltaY);
+    if (distance < 12) {
+      fisherPosition.x = destinationPoint.x;
+      fisherPosition.y = destinationPoint.y;
       return true;
     }
-    p.x += (dx / dist) * 18;
-    p.y += (dy / dist) * 18;
+    fisherPosition.x += (deltaX / distance) * 18;
+    fisherPosition.y += (deltaY / distance) * 18;
     return false;
   }
 
