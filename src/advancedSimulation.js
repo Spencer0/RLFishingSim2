@@ -33,7 +33,6 @@ export class AdvancedFishingSimulation {
     this.phase = 'decide';
     this.destination = 'home';
     this.lastChosenSpot = 'lake';
-    this.pendingRewardForTransition = 0;
     this.currentStateKey = 'hhh';
 
     this.state = {
@@ -107,8 +106,13 @@ export class AdvancedFishingSimulation {
         const spot = this.destination;
         const result = this.performFishing(spot);
         this.state.fishInventory += result.fishCaught;
-        this.pendingRewardForTransition += result.totalCoins;
         this.consumeStock(spot);
+
+        const nextStateKey = this.computeStateKey();
+        this.brain.update(this.currentStateKey, spot, result.totalCoins, nextStateKey);
+        this.currentStateKey = nextStateKey;
+        this.state.brain = this.brain.snapshot();
+
         this.state.log.unshift(`At ${spot} (${this.state.stockLevels[spot]} stock), caught ${result.fishCaught} fish worth ${result.totalCoins}.`);
 
         if (this.state.fishInventory >= MAX_BAG || this.state.minute >= DAY_END - 120) {
@@ -125,11 +129,7 @@ export class AdvancedFishingSimulation {
         const coinsEarned = soldFishCount * 3;
         this.state.coins += coinsEarned;
         this.state.fishInventory = 0;
-
         const nextStateKey = this.computeStateKey();
-        this.brain.update(this.currentStateKey, this.lastChosenSpot, this.pendingRewardForTransition, nextStateKey);
-        this.pendingRewardForTransition = 0;
-        this.state.brain = this.brain.snapshot();
 
         this.state.fishTrips += 1;
         this.state.log.unshift(`Sold ${soldFishCount} fish for ${coinsEarned} coins. New state ${nextStateKey.toUpperCase()}.`);

@@ -197,7 +197,7 @@ h2 { margin: 0 0 0.8rem; font-size: 1.1rem; color: #173553; }
   display: block;
 }
 
-#brain, #stockPanel, #qtable { margin-top: 0.25rem; }
+#brain, #stockPanel, #qtable, #mathPanel { margin-top: 0.25rem; }
 #journal { margin: 0.25rem 0 0; padding-left: 1rem; max-height: 32vh; overflow: auto; }
 #journal li { margin: 0.35rem 0; line-height: 1.35; color: #23435f; }
 
@@ -240,3 +240,20 @@ h2 { margin: 0 0 0.8rem; font-size: 1.1rem; color: #173553; }
   .menu-grid { grid-template-columns: 1fr; }
   .detail-tab { width: 100%; text-align: center; }
 }
+
+.math-panel { line-height: 1.45; color: #173553; }
+.math-panel h3, .math-panel h4 { margin: 0.2rem 0 0.6rem; color: #103454; }
+.math-formula {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 1.06rem;
+  background: linear-gradient(180deg, rgba(244, 250, 255, 0.95), rgba(225, 239, 252, 0.9));
+  border: 1px solid rgba(69, 121, 161, 0.25);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.math-arrow { font-weight: 700; }
+.math-symbols { margin: 0.2rem 0 0.8rem; padding-left: 1.1rem; }
+.math-symbols li { margin: 0.25rem 0; }

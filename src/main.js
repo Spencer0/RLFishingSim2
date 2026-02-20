@@ -70,12 +70,14 @@ function startSimulation(mode) {
           <button class="detail-tab active" role="tab" aria-selected="true" aria-controls="journalPane" data-tab="journalPane">📓 Journal</button>
           <button class="detail-tab" role="tab" aria-selected="false" aria-controls="brainPane" data-tab="brainPane">🧠 Brain</button>
           <button class="detail-tab" role="tab" aria-selected="false" aria-controls="qTablePane" data-tab="qTablePane">🗂️ Q Table</button>
+          <button class="detail-tab" role="tab" aria-selected="false" aria-controls="mathPane" data-tab="mathPane">∑ Math</button>
           ${config.hasStockPanel ? '<button class="detail-tab" role="tab" aria-selected="false" aria-controls="stockPane" data-tab="stockPane">📦 Stock</button>' : ''}
         </div>
         <div class="details-panes">
           <section id="journalPane" class="details-pane active" role="tabpanel"><ul id="journal"></ul></section>
           <section id="brainPane" class="details-pane" role="tabpanel"><div id="brain"></div></section>
           <section id="qTablePane" class="details-pane" role="tabpanel"><div id="qtable"></div></section>
+          <section id="mathPane" class="details-pane" role="tabpanel"><div id="mathPanel"></div></section>
           ${config.hasStockPanel ? '<section id="stockPane" class="details-pane" role="tabpanel"><div id="stockPanel"></div></section>' : ''}
         </div>
       </section>
@@ -103,6 +105,7 @@ function startSimulation(mode) {
     journalElement: document.querySelector('#journal'),
     qTableElement: document.querySelector('#qtable'),
     stockPanelElement: document.querySelector('#stockPanel'),
+    mathElement: document.querySelector('#mathPanel'),
     tabButtons: [...document.querySelectorAll('.detail-tab')]
   });
   panelController.bindTabs();

@@ -1,12 +1,14 @@
 import { renderQTablePanel } from './qTablePanel.js';
+import { renderMathPanel } from './mathPanel.js';
 
 export class SimulationPanelController {
-  constructor({ statsElement, brainElement, journalElement, qTableElement, stockPanelElement, tabButtons }) {
+  constructor({ statsElement, brainElement, journalElement, qTableElement, stockPanelElement, mathElement, tabButtons }) {
     this.statsElement = statsElement;
     this.brainElement = brainElement;
     this.journalElement = journalElement;
     this.qTableElement = qTableElement;
     this.stockPanelElement = stockPanelElement;
+    this.mathElement = mathElement;
     this.tabButtons = tabButtons;
     this.qTableScrollTop = 0;
     this.qTableMarkupKey = '';
@@ -35,6 +37,7 @@ export class SimulationPanelController {
 
     this.brainElement.innerHTML = renderBrainPanel(state);
     if (this.stockPanelElement) this.stockPanelElement.innerHTML = renderStockPanel(state);
+    if (this.mathElement) this.mathElement.innerHTML = renderMathPanel();
     if (this.qTableElement) {
       const previousScrollContainer = this.qTableElement.querySelector('.qtable-wrap');
       if (previousScrollContainer) {
