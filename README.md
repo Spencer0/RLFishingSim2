@@ -25,3 +25,21 @@ npm run dev
 npm run test:unit
 npm run test:e2e
 ```
+
+## Playwright / Chromium troubleshooting
+
+If e2e tests fail with a missing browser executable, install Playwright's Chromium bundle:
+
+```bash
+npx playwright install chromium
+```
+
+In restricted/proxied environments, browser downloads may be blocked and return `403 Forbidden`
+from the proxy when accessing Playwright CDN URLs. You can quickly verify this with:
+
+```bash
+curl -I https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+```
+
+If that request is blocked, e2e tests cannot run until network policy allows those downloads
+(or a compatible Chromium binary is preinstalled in the environment).

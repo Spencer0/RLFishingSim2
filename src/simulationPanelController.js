@@ -1,10 +1,5 @@
 import { renderQTablePanel } from './qTablePanel.js';
 
-function describeAdvancedState(stockLevels) {
-  const normalize = (value) => `${value[0].toUpperCase()}${value.slice(1)}`;
-  return `Lake ${normalize(stockLevels.lake)} · River ${normalize(stockLevels.river)} · Ocean ${normalize(stockLevels.ocean)}`;
-}
-
 export class SimulationPanelController {
   constructor({ statsElement, brainElement, journalElement, qTableElement, stockPanelElement, tabButtons }) {
     this.statsElement = statsElement;
@@ -13,6 +8,8 @@ export class SimulationPanelController {
     this.qTableElement = qTableElement;
     this.stockPanelElement = stockPanelElement;
     this.tabButtons = tabButtons;
+    this.qTableScrollTop = 0;
+    this.qTableMarkupKey = '';
   }
 
   bindTabs() {
@@ -34,21 +31,33 @@ export class SimulationPanelController {
   }
 
   refresh(state) {
-    const hour = String(Math.floor(state.minute / 60) % 24).padStart(2, '0');
-    const minute = String(state.minute % 60).padStart(2, '0');
-    const extraStatus = state.mode === 'advanced'
-      ? `State ${describeAdvancedState(state.stockLevels)}`
-      : (state.hasBoat ? '⛵ Boat ready' : '🧾 Need 100 coins for boat');
-    this.statsElement.textContent = `Day ${state.day} · Time ${hour}:${minute} · 🐟 ${state.fishInventory} · Coins ${state.coins} · ${extraStatus}`;
+    this.statsElement.textContent = `Day ${state.day} · 🐟 ${state.fishInventory} · Coins ${state.coins}`;
 
     this.brainElement.innerHTML = renderBrainPanel(state);
     if (this.stockPanelElement) this.stockPanelElement.innerHTML = renderStockPanel(state);
     if (this.qTableElement) {
       const previousScrollContainer = this.qTableElement.querySelector('.qtable-wrap');
-      const previousScrollTop = previousScrollContainer?.scrollTop ?? 0;
-      this.qTableElement.innerHTML = renderQTablePanel(state);
-      const nextScrollContainer = this.qTableElement.querySelector('.qtable-wrap');
-      if (nextScrollContainer) nextScrollContainer.scrollTop = previousScrollTop;
+      if (previousScrollContainer) {
+        this.qTableScrollTop = previousScrollContainer.scrollTop;
+      }
+
+      const qTableMarkup = renderQTablePanel(state);
+      if (qTableMarkup !== this.qTableMarkupKey) {
+        this.qTableElement.innerHTML = qTableMarkup;
+        this.qTableMarkupKey = qTableMarkup;
+      }
+
+      const scrollContainer = this.qTableElement.querySelector('.qtable-wrap');
+      if (scrollContainer) {
+        const restoredScrollTop = this.qTableScrollTop;
+        scrollContainer.scrollTop = restoredScrollTop;
+        requestAnimationFrame(() => {
+          scrollContainer.scrollTop = restoredScrollTop;
+        });
+        scrollContainer.onscroll = () => {
+          this.qTableScrollTop = scrollContainer.scrollTop;
+        };
+      }
     }
     this.journalElement.innerHTML = state.log.slice(0, 10).map((item) => `<li>${item}</li>`).join('');
   }
@@ -90,4 +99,9 @@ function renderStockPanel(state) {
     ${row('lake')}
     ${row('river')}
     ${row('ocean')}`;
+}
+
+function describeAdvancedState(stockLevels) {
+  const normalize = (value) => `${value[0].toUpperCase()}${value.slice(1)}`;
+  return `Lake ${normalize(stockLevels.lake)} · River ${normalize(stockLevels.river)} · Ocean ${normalize(stockLevels.ocean)}`;
 }

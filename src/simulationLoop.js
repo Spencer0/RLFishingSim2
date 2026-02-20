@@ -1,17 +1,22 @@
 const DEFAULT_TARGET_FPS = 60;
-const DEFAULT_SIM_MINUTES_PER_SECOND = 10 / 0.22;
+const MINUTES_PER_DAY = 16 * 60;
+const DEFAULT_SIMULATION_SPEED = 10;
+const BASE_MINUTES_PER_SECOND = MINUTES_PER_DAY / 10;
+const SIMULATION_STEP_MS = 10;
 
 export class SimulationLoop {
   constructor({
     targetFps = DEFAULT_TARGET_FPS,
-    simulationMinutesPerSecond = DEFAULT_SIM_MINUTES_PER_SECOND,
+    simulationSpeed = DEFAULT_SIMULATION_SPEED,
     maxElapsedMs = 250,
     requestFrame = (cb) => requestAnimationFrame(cb),
     cancelFrame = (id) => cancelAnimationFrame(id),
     now = () => performance.now()
   } = {}) {
     this.frameMs = 1000 / targetFps;
-    this.simulationMinutesPerSecond = simulationMinutesPerSecond;
+    this.simulationStepMs = SIMULATION_STEP_MS;
+    this.simulationSpeed = simulationSpeed;
+    this.simulationStepMinutes = 2;
     this.maxElapsedMs = maxElapsedMs;
     this.requestFrame = requestFrame;
     this.cancelFrame = cancelFrame;
@@ -25,6 +30,20 @@ export class SimulationLoop {
     this.onSimulationAdvanced = null;
 
     this.handleFrame = this.handleFrame.bind(this);
+  }
+
+  setSimulationSpeed(nextSpeed) {
+    const parsedSpeed = Number(nextSpeed);
+    if (!Number.isFinite(parsedSpeed)) return;
+    this.simulationSpeed = Math.max(1, Math.min(100, parsedSpeed));
+  }
+
+  getSimulationSpeed() {
+    return this.simulationSpeed;
+  }
+
+  getSimulationMinutesPerSecond() {
+    return BASE_MINUTES_PER_SECOND * this.simulationSpeed;
   }
 
   start({ getSimulation, onDraw, onSimulationAdvanced }) {
@@ -57,10 +76,15 @@ export class SimulationLoop {
     let didSimulationAdvance = false;
     if (simulation.getState().isPlaying) {
       this.simulationAccumulator += elapsedMs;
-      while (this.simulationAccumulator >= this.frameMs) {
-        const simulatedMinutes = (this.frameMs / 1000) * this.simulationMinutesPerSecond;
-        simulation.tick(simulatedMinutes);
-        this.simulationAccumulator -= this.frameMs;
+      while (this.simulationAccumulator >= this.simulationStepMs) {
+        const simulatedMinutesThisFrame = (this.simulationStepMs / 1000) * this.getSimulationMinutesPerSecond();
+        let remainingMinutes = simulatedMinutesThisFrame;
+        while (remainingMinutes > 0) {
+          const tickMinutes = Math.min(this.simulationStepMinutes, remainingMinutes);
+          simulation.tick(tickMinutes);
+          remainingMinutes -= tickMinutes;
+        }
+        this.simulationAccumulator -= this.simulationStepMs;
         didSimulationAdvance = true;
       }
     }
