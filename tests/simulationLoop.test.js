@@ -72,4 +72,21 @@ describe('SimulationLoop', () => {
     expect(drawCount).toBe(1);
     expect(advancedCount).toBe(0);
   });
+
+  it('clamps simulation speed to accepted bounds', () => {
+    const loop = new SimulationLoop();
+
+    loop.setSimulationSpeed(500);
+    expect(loop.getSimulationSpeed()).toBe(100);
+
+    loop.setSimulationSpeed(0);
+    expect(loop.getSimulationSpeed()).toBe(1);
+
+    loop.setSimulationSpeed('25');
+    expect(loop.getSimulationSpeed()).toBe(25);
+
+    loop.setSimulationSpeed('not-a-number');
+    expect(loop.getSimulationSpeed()).toBe(25);
+  });
+
 });

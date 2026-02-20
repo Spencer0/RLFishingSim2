@@ -41,4 +41,13 @@ describe('AdvancedFishingSimulation', () => {
     expect(simulation.getState().stockLevels.lake).toBe('medium');
   });
 
+
+  it('computes compact state keys from stock levels', () => {
+    const simulation = new AdvancedFishingSimulation();
+    const state = simulation.getState();
+    state.stockLevels = { lake: 'low', river: 'medium', ocean: 'high' };
+
+    expect(simulation.computeStateKey()).toBe('lmh');
+  });
+
 });
