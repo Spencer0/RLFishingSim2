@@ -1,4 +1,4 @@
-import { drawFisher, roundRect, setupCanvas } from './scenePrimitives.js';
+import { drawFisher, drawHabitatEmblem, roundRect, setupCanvas } from './scenePrimitives.js';
 import { dominantBelief } from './pomdpBrain.js';
 
 const LOCATIONS = {
@@ -70,6 +70,8 @@ export function renderPOMDPScene(context, canvas, state) {
     context.beginPath();
     context.arc(x, y, radius, 0, Math.PI * 2);
     context.fill();
+
+    drawHabitatEmblem(context, habitat, x, y, radius * 0.95);
 
     context.fillStyle = '#1f2937';
     context.font = '700 14px Inter, sans-serif';

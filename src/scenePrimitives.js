@@ -210,3 +210,41 @@ export function drawFisher(context, x, y, time) {
 
   context.restore();
 }
+
+const habitatSvgShapes = supportsPath2D
+  ? {
+      wetland: {
+        base: new Path2D('M10 28 C12 18, 20 12, 28 12 C36 12, 44 18, 46 28 C42 36, 34 40, 28 40 C22 40, 14 36, 10 28 Z'),
+        accent: new Path2D('M28 10 C32 15, 33 20, 28 26 C23 20, 24 15, 28 10 Z')
+      },
+      forest: {
+        base: new Path2D('M28 8 L40 24 L33 24 L44 38 L12 38 L23 24 L16 24 Z'),
+        accent: new Path2D('M26 38 L26 28 L30 28 L30 38 Z')
+      },
+      savanna: {
+        base: new Path2D('M10 30 C16 18, 26 14, 38 16 C42 20, 43 28, 40 34 C32 38, 20 38, 12 34 Z'),
+        accent: new Path2D('M18 18 L20 10 L24 18 M30 18 L32 10 L36 18')
+      }
+    }
+  : null;
+
+export function drawHabitatEmblem(context, habitat, x, y, size = 48) {
+  const shape = habitatSvgShapes?.[habitat];
+  if (!shape) return;
+
+  context.save();
+  context.translate(x - size / 2, y - size / 2);
+  context.scale(size / 56, size / 56);
+
+  context.fillStyle = 'rgba(31, 41, 55, 0.14)';
+  context.fill(shape.base);
+
+  context.fillStyle = 'rgba(255, 255, 255, 0.78)';
+  context.fill(shape.accent);
+
+  context.strokeStyle = 'rgba(17, 24, 39, 0.5)';
+  context.lineWidth = 1.5;
+  context.stroke(shape.base);
+
+  context.restore();
+}
