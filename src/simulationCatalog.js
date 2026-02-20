@@ -1,5 +1,6 @@
 import { FishingSimulation as SimpleFishingSimulation } from './simulation.js';
 import { AdvancedFishingSimulation } from './advancedSimulation.js';
+import { POMDPSimulation } from './pomdpSimulation.js';
 
 export class SimulationCatalog {
   constructor(entries = {}) {
@@ -32,6 +33,12 @@ export function createDefaultSimulationCatalog() {
     subtitle: 'Q-table over stock states (3^3) with replenishment dynamics',
     hasStockPanel: true,
     createSimulation: () => new AdvancedFishingSimulation()
+  });
+  catalog.register('pomdp', {
+    label: 'POMDP',
+    subtitle: 'Belief-state inference under partial observability.',
+    hasStockPanel: true,
+    createSimulation: () => new POMDPSimulation()
   });
   return catalog;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SimulationCatalog } from '../src/simulationCatalog.js';
+import { SimulationCatalog, createDefaultSimulationCatalog } from '../src/simulationCatalog.js';
 
 describe('SimulationCatalog', () => {
   it('registers and retrieves simulation configs', () => {
@@ -16,4 +16,11 @@ describe('SimulationCatalog', () => {
     const catalog = new SimulationCatalog();
     expect(catalog.get('missing')).toBeNull();
   });
+});
+
+
+it('includes pomdp mode in default catalog', () => {
+  const catalog = createDefaultSimulationCatalog();
+  expect(catalog.listModes()).toContain('pomdp');
+  expect(catalog.get('pomdp')?.label).toBe('POMDP');
 });

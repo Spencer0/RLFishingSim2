@@ -22,6 +22,24 @@ export function buildPanelRenderKey(state) {
     });
   }
 
+  if (state.mode === 'pomdp') {
+    return JSON.stringify({
+      day: state.day,
+      minute: state.minute,
+      fishInventory: state.fishInventory,
+      coins: state.coins,
+      isPlaying: state.isPlaying,
+      truePrevalence: state.truePrevalence,
+      belief: state.belief,
+      beliefKey: state.beliefKey,
+      lastObservations: state.lastObservations,
+      transitionTimers: state.transitionTimers,
+      daysSinceLastVisit: state.daysSinceLastVisit,
+      brain: state.brain,
+      log: state.log.slice(0, 10)
+    });
+  }
+
   return JSON.stringify({
     day: state.day,
     minute: state.minute,
