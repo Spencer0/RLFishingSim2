@@ -24,19 +24,37 @@ export function createDefaultSimulationCatalog() {
   const catalog = new SimulationCatalog();
   catalog.register('simple', {
     label: 'Simple',
+    homeEmoji: '🎣',
+    homeButtonLabel: 'Simple Markov Simulation',
+    titleEmoji: '🎣🐟',
+    titleText: 'RL Fishing Simulator',
+    inventoryEmoji: '🐟',
+    inventoryLabel: 'Catch',
     subtitle: 'Epsilon-greedy day planning: lake vs river vs ocean (boat unlock)',
     hasStockPanel: false,
     createSimulation: () => new SimpleFishingSimulation()
   });
   catalog.register('advanced', {
     label: 'Advanced',
+    homeEmoji: '🛥️',
+    homeButtonLabel: 'Advanced Markov Simulation',
+    titleEmoji: '🎣🛥️',
+    titleText: 'RL Fishing Simulator',
+    inventoryEmoji: '🐟',
+    inventoryLabel: 'Catch',
     subtitle: 'Q-table over stock states (3^3) with replenishment dynamics',
     hasStockPanel: true,
     createSimulation: () => new AdvancedFishingSimulation()
   });
   catalog.register('pomdp', {
-    label: 'POMDP',
-    subtitle: 'Belief-state inference under partial observability.',
+    label: 'Wildlife Rescue (POMDP)',
+    homeEmoji: '🦌',
+    homeButtonLabel: 'Wildlife Disease Response',
+    titleEmoji: '🦌💉',
+    titleText: 'RL Wildlife Simulator',
+    inventoryEmoji: '💊',
+    inventoryLabel: 'Cures',
+    subtitle: 'Belief-state disease surveillance under partial observability.',
     hasStockPanel: true,
     createSimulation: () => new POMDPSimulation()
   });

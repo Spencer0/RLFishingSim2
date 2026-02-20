@@ -19,13 +19,16 @@ renderHomeScreen();
 function renderHomeScreen() {
   stopSimulation();
   const modeButtons = simulationCatalog.listModes()
-    .map((mode) => `<button data-mode="${mode}" class="menu-button">${simulationCatalog.get(mode).label} Markov Simulation</button>`)
+    .map((mode) => {
+      const config = simulationCatalog.get(mode);
+      return `<button data-mode="${mode}" class="menu-button"><span aria-hidden="true">${config.homeEmoji}</span> ${config.homeButtonLabel}</button>`;
+    })
     .join('');
 
   app.innerHTML = `
   <div class="home-layout">
     <section class="home-card glass">
-      <h1>🎣 RL Fishing Lab</h1>
+      <h1>🧪 RL Simulation Lab</h1>
       <p class="subtitle">Choose a simulation to explore reinforcement learning behavior.</p>
       <div class="menu-grid">${modeButtons}</div>
     </section>
@@ -47,7 +50,7 @@ function startSimulation(mode) {
   <div class="layout">
     <header class="topbar glass">
       <div>
-        <h1>🎣 RL Fishing Simulator (${config.label})</h1>
+        <h1><span aria-hidden="true">${config.titleEmoji}</span> ${(config.titleText ?? 'RL Simulator')} (${config.label})</h1>
         <p class="subtitle">${config.subtitle}</p>
       </div>
       <button id="goHome" class="btn secondary">Home</button>
@@ -61,7 +64,7 @@ function startSimulation(mode) {
     <main class="content">
       <section class="canvas-wrap glass">
         <div class="canvas-shell" id="canvasShell">
-          <canvas id="world" width="800" height="500" aria-label="Fishing world"></canvas>
+          <canvas id="world" width="800" height="500" aria-label="Simulation world"></canvas>
           <div id="fastForwardBadge" class="fast-forward-badge" aria-hidden="true">⏩ Fast forward</div>
         </div>
       </section>
