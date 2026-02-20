@@ -21,7 +21,7 @@ function renderHomeScreen() {
   const modeButtons = simulationCatalog.listModes()
     .map((mode) => {
       const config = simulationCatalog.get(mode);
-      return `<button data-mode="${mode}" class="menu-button">${config.homeEmoji} ${config.homeButtonLabel}</button>`;
+      return `<button data-mode="${mode}" class="menu-button"><span aria-hidden="true">${config.homeEmoji}</span> ${config.homeButtonLabel}</button>`;
     })
     .join('');
 
@@ -50,7 +50,7 @@ function startSimulation(mode) {
   <div class="layout">
     <header class="topbar glass">
       <div>
-        <h1>${config.titleEmoji} RL Simulator (${config.label})</h1>
+        <h1><span aria-hidden="true">${config.titleEmoji}</span> ${(config.titleText ?? 'RL Simulator')} (${config.label})</h1>
         <p class="subtitle">${config.subtitle}</p>
       </div>
       <button id="goHome" class="btn secondary">Home</button>

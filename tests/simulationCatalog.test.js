@@ -24,5 +24,6 @@ it('includes pomdp mode in default catalog', () => {
   expect(catalog.listModes()).toContain('pomdp');
   expect(catalog.get('pomdp')?.label).toBe('Wildlife Rescue (POMDP)');
   expect(catalog.get('pomdp')?.homeEmoji).toBe('🦌');
-  expect(catalog.get('advanced')?.homeButtonLabel).toContain('Fishing');
+  expect(catalog.get('simple')?.titleText).toBe('RL Fishing Simulator');
+  expect(catalog.get('advanced')?.homeButtonLabel).toContain('Markov');
 });
