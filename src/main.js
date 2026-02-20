@@ -1,6 +1,7 @@
 import { renderSimpleSimulationScene } from './simpleRenderer.js';
 import { renderAdvancedSimulationScene } from './advancedRenderer.js';
 import { createDefaultSimulationCatalog } from './simulationCatalog.js';
+import { renderPOMDPScene } from './pomdpRenderer.js';
 import { buildPanelRenderKey } from './panelState.js';
 import { SimulationLoop } from './simulationLoop.js';
 import { SimulationPanelController } from './simulationPanelController.js';
@@ -152,6 +153,8 @@ function startSimulation(mode) {
 function drawWorld(ctx, canvas, state) {
   if (state.mode === 'advanced') {
     renderAdvancedSimulationScene(ctx, canvas, state);
+  } else if (state.mode === 'pomdp') {
+    renderPOMDPScene(ctx, canvas, state);
   } else {
     renderSimpleSimulationScene(ctx, canvas, state);
   }

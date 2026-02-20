@@ -1,5 +1,9 @@
 import { renderQTablePanel } from './qTablePanel.js';
 import { renderMathPanel } from './mathPanel.js';
+import { renderPOMDPQTablePanel } from './pomdpQTablePanel.js';
+import { renderPOMDPMathPanel } from './pomdpMathPanel.js';
+import { dominantBelief } from './pomdpBrain.js';
+import { computeBeliefAccuracy } from './pomdpSimulation.js';
 
 export class SimulationPanelController {
   constructor({ statsElement, brainElement, journalElement, qTableElement, stockPanelElement, mathElement, tabButtons }) {
@@ -37,14 +41,14 @@ export class SimulationPanelController {
 
     this.brainElement.innerHTML = renderBrainPanel(state);
     if (this.stockPanelElement) this.stockPanelElement.innerHTML = renderStockPanel(state);
-    if (this.mathElement) this.mathElement.innerHTML = renderMathPanel();
+    if (this.mathElement) this.mathElement.innerHTML = state.mode === 'pomdp' ? renderPOMDPMathPanel() : renderMathPanel();
     if (this.qTableElement) {
       const previousScrollContainer = this.qTableElement.querySelector('.qtable-wrap');
       if (previousScrollContainer) {
         this.qTableScrollTop = previousScrollContainer.scrollTop;
       }
 
-      const qTableMarkup = renderQTablePanel(state);
+      const qTableMarkup = state.mode === 'pomdp' ? renderPOMDPQTablePanel(state) : renderQTablePanel(state);
       if (qTableMarkup !== this.qTableMarkupKey) {
         this.qTableElement.innerHTML = qTableMarkup;
         this.qTableMarkupKey = qTableMarkup;
@@ -81,6 +85,26 @@ function renderBrainPanel(state) {
       <p><b>Total Reward</b>: ${state.brain.totalReward.toFixed(1)} coins</p>`;
   }
 
+  if (state.mode === 'pomdp') {
+    const habitats = ['wetland', 'forest', 'savanna'];
+    const dominantSummary = habitats.map((habitat) => `${formatPrevalence(habitat)}=${formatPrevalence(dominantBelief(state.belief[habitat]))}`).join(' · ');
+    const observationSummary = habitats.map((habitat) => `${formatPrevalence(habitat)}=${state.lastObservations[habitat] ?? '?'}`).join(' · ');
+    const truthSummary = habitats.map((habitat) => `${formatPrevalence(habitat)}=${formatPrevalence(state.truePrevalence[habitat])}`).join(' · ');
+    const qValues = state.brain.qTable?.[state.beliefKey] ?? { wetland: 0, forest: 0, savanna: 0 };
+    const accuracy = computeBeliefAccuracy(state);
+    return `
+      <p><b>Epsilon</b>: ${state.brain.epsilon.toFixed(2)} | <b>Alpha</b>: ${state.brain.alpha.toFixed(2)} | <b>Gamma</b>: ${state.brain.gamma.toFixed(2)}</p>
+      <p><b>Belief Key</b>: ${state.beliefKey.toUpperCase()} (current discretized belief state)</p>
+      <p><b>Dominant Belief</b>: ${dominantSummary}</p>
+      <p><b>Last Observations</b>: ${observationSummary}</p>
+      <p><b>True Prevalence</b>: ${truthSummary}</p>
+      <p><b>Belief Accuracy</b>: ${accuracy}/3 habitats correctly estimated</p>
+      <p><b>Q(Wetland)</b>: ${qValues.wetland.toFixed(2)}</p>
+      <p><b>Q(Forest)</b>: ${qValues.forest.toFixed(2)}</p>
+      <p><b>Q(Savanna)</b>: ${qValues.savanna.toFixed(2)}</p>
+      <p><b>Total Reward</b>: ${state.brain.totalReward.toFixed(0)} points</p>`;
+  }
+
   return `
     <p><b>Epsilon</b>: ${state.brain.epsilon.toFixed(2)}</p>
     <p><b>Q(Lake)</b>: ${state.brain.qValues.lake.toFixed(2)} (${state.brain.visits.lake} visits)</p>
@@ -90,7 +114,31 @@ function renderBrainPanel(state) {
     <p><b>Total Reward</b>: ${state.brain.totalReward} coins</p>`;
 }
 
+
+function formatPrevalence(value) {
+  return `${value[0].toUpperCase()}${value.slice(1)}`;
+}
+
+function renderPOMDPStockPanel(state) {
+  const habitats = ['wetland', 'forest', 'savanna'];
+  const rows = habitats.map((habitat) => {
+    const dominant = dominantBelief(state.belief[habitat]);
+    const match = dominant === state.truePrevalence[habitat] ? '✓' : '✗';
+    const transition = state.transitionTimers[habitat]?.daysUntilTransition ?? 0;
+    const belief = state.belief[habitat];
+    return `<p><b>${formatPrevalence(habitat)}</b>: true ${formatPrevalence(state.truePrevalence[habitat])} · belief L=${belief.low.toFixed(2)} M=${belief.medium.toFixed(2)} H=${belief.high.toFixed(2)} · match ${match} · days since visit ${state.daysSinceLastVisit[habitat]} · transition in ${transition} day(s)</p>`;
+  }).join('');
+
+  return `
+    <p>Dual-layer monitor: hidden truth vs inferred belief.</p>
+    ${rows}`;
+}
+
 function renderStockPanel(state) {
+  if (state.mode === 'pomdp') {
+    return renderPOMDPStockPanel(state);
+  }
+
   const row = (spot) => {
     const timer = state.replenishTimers[spot];
     return `<p><b>${spot}</b>: ${state.stockLevels[spot].toUpperCase()} · regrowth queue ${timer.pendingLevels} · next bloom in ${timer.actionsUntilReplenish} action(s)</p>`;
