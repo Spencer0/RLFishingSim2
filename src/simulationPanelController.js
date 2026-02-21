@@ -19,7 +19,9 @@ const MODE_STATUS_META = {
 
 export function formatStatusReadout(state) {
   if (state.mode === 'tribal') {
-    return `Day ${state.day} · 🍖 Ashvari ${state.ashvari.food} · 🍖 Duskborn ${state.duskborn.food}`;
+    const hour = Math.floor(state.minute / 60) % 24;
+    const minute = Math.floor(state.minute % 60);
+    return `Day ${state.day} · ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')} · 🍖 Ashvari ${state.ashvari.food} · 🍖 Duskborn ${state.duskborn.food}`;
   }
   const meta = MODE_STATUS_META[state.mode] ?? MODE_STATUS_META.simple;
   return `Day ${state.day} · ${meta.inventoryEmoji} ${state.fishInventory} ${meta.inventoryLabel} · Coins ${state.coins}`;

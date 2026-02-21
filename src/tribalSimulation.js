@@ -8,9 +8,42 @@ const PAYOFF = {
   raid: { hunt: [14, 4], fish: [14, 2], trade: [14, -4], raid: [-6, -6] }
 };
 
+const DAY_START = 6 * 60;
+const DAY_END = 22 * 60;
+const SCHEDULE = {
+  decide: 7 * 60,
+  resolve: 12 * 60,
+  returnHome: 17 * 60,
+  finishDay: 21 * 60
+};
+
+const WORLD_POINTS = {
+  ashvariHome: { x: 130, y: 332 },
+  duskbornHome: { x: 650, y: 332 },
+  forest: { x: 350, y: 160 },
+  river: { x: 420, y: 320 },
+  trade: { x: 390, y: 245 },
+  raidAshvari: { x: 200, y: 300 },
+  raidDuskborn: { x: 580, y: 300 }
+};
+
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 function lowerStock(level) { return level === 'high' ? 'medium' : 'low'; }
 function higherStock(level) { return level === 'low' ? 'medium' : 'high'; }
+
+function lerpPoint(from, to, t) {
+  return {
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t
+  };
+}
+
+function getTargetForAction(tribe, action) {
+  if (action === 'hunt') return WORLD_POINTS.forest;
+  if (action === 'fish') return WORLD_POINTS.river;
+  if (action === 'trade') return WORLD_POINTS.trade;
+  return tribe === 'ashvari' ? WORLD_POINTS.raidDuskborn : WORLD_POINTS.raidAshvari;
+}
 
 export function resolveActions(actionA, actionB, forestStock, riverStock, reputationA, reputationB) {
   let [rewardA, rewardB] = PAYOFF[actionA][actionB];
@@ -41,10 +74,9 @@ export function detectNashEquilibrium(state) {
 
 export class TribalSimulation {
   constructor() {
-    this.phase = 'decide';
+    this.phase = 'dawn';
     this.pendingActions = { ashvari: 'hunt', duskborn: 'hunt' };
     this.currentStateKeys = { ashvari: '', duskborn: '' };
-    this.foodTrend = { ashvari: [0], duskborn: [0] };
 
     this.ashvari = new TribalBrain('Ashvari', { epsilon: 0.2, alpha: 0.2, gamma: 0.88 });
     this.duskborn = new TribalBrain('Duskborn', { epsilon: 0.25, alpha: 0.2, gamma: 0.88 });
@@ -53,7 +85,7 @@ export class TribalSimulation {
       mode: 'tribal',
       isPlaying: true,
       day: 1,
-      minute: 0,
+      minute: DAY_START,
       phase: this.phase,
       forestStock: 'high',
       riverStock: 'high',
@@ -67,20 +99,33 @@ export class TribalSimulation {
       coins: 0,
       jointHistory: [],
       foodHistory: { ashvari: [0], duskborn: [0] },
+      expeditions: {
+        ashvari: this.createExpedition('ashvari', WORLD_POINTS.ashvariHome),
+        duskborn: this.createExpedition('duskborn', WORLD_POINTS.duskbornHome)
+      },
       log: ['Tribal simulation started. Two tribes now learn together in a shared environment.']
     };
+  }
+
+  createExpedition(tribe, home) {
+    return { tribe, action: 'hunt', from: { ...home }, to: { ...home }, position: { ...home }, travel: 'idle' };
   }
 
   getState() { return this.state; }
   togglePlay() { this.state.isPlaying = !this.state.isPlaying; }
 
-  tick() {
+  tick(minutes = 10) {
     if (!this.state.isPlaying) return;
-    if (this.phase === 'decide') this.decide();
-    else if (this.phase === 'resolve') this.resolve();
-    else this.finishDay();
+    const previousMinute = this.state.minute;
+    this.state.minute = Math.min(DAY_END, this.state.minute + minutes);
+
+    if (previousMinute < SCHEDULE.decide && this.state.minute >= SCHEDULE.decide) this.decide();
+    if (previousMinute < SCHEDULE.resolve && this.state.minute >= SCHEDULE.resolve) this.resolve();
+    if (previousMinute < SCHEDULE.returnHome && this.state.minute >= SCHEDULE.returnHome) this.beginReturn();
+    if (previousMinute < SCHEDULE.finishDay && this.state.minute >= SCHEDULE.finishDay) this.finishDay();
+
+    this.updateExpeditionPositions();
     this.state.phase = this.phase;
-    this.state.minute += 1;
   }
 
   decide() {
@@ -92,7 +137,43 @@ export class TribalSimulation {
 
     this.state.ashvari.currentStateKey = this.currentStateKeys.ashvari;
     this.state.duskborn.currentStateKey = this.currentStateKeys.duskborn;
-    this.phase = 'resolve';
+
+    this.launchExpedition('ashvari', this.pendingActions.ashvari);
+    this.launchExpedition('duskborn', this.pendingActions.duskborn);
+    this.phase = 'outbound';
+  }
+
+  launchExpedition(tribe, action) {
+    const expedition = this.state.expeditions[tribe];
+    expedition.action = action;
+    expedition.from = { ...(tribe === 'ashvari' ? WORLD_POINTS.ashvariHome : WORLD_POINTS.duskbornHome) };
+    expedition.to = { ...getTargetForAction(tribe, action) };
+    expedition.travel = 'outbound';
+  }
+
+  beginReturn() {
+    this.state.expeditions.ashvari.from = { ...this.state.expeditions.ashvari.to };
+    this.state.expeditions.duskborn.from = { ...this.state.expeditions.duskborn.to };
+    this.state.expeditions.ashvari.to = { ...WORLD_POINTS.ashvariHome };
+    this.state.expeditions.duskborn.to = { ...WORLD_POINTS.duskbornHome };
+    this.state.expeditions.ashvari.travel = 'returning';
+    this.state.expeditions.duskborn.travel = 'returning';
+    this.phase = 'returning';
+  }
+
+  updateExpeditionPositions() {
+    for (const tribe of ['ashvari', 'duskborn']) {
+      const expedition = this.state.expeditions[tribe];
+      if (expedition.travel === 'outbound') {
+        const t = clamp((this.state.minute - SCHEDULE.decide) / (SCHEDULE.resolve - SCHEDULE.decide), 0, 1);
+        expedition.position = lerpPoint(expedition.from, expedition.to, t);
+      } else if (expedition.travel === 'returning') {
+        const t = clamp((this.state.minute - SCHEDULE.returnHome) / (SCHEDULE.finishDay - SCHEDULE.returnHome), 0, 1);
+        expedition.position = lerpPoint(expedition.from, expedition.to, t);
+      } else {
+        expedition.position = { ...expedition.to };
+      }
+    }
   }
 
   resolve() {
@@ -136,7 +217,7 @@ export class TribalSimulation {
 
     this.state.ashvari.brain = this.ashvari.snapshot();
     this.state.duskborn.brain = this.duskborn.snapshot();
-    this.phase = 'finishDay';
+    this.phase = 'resolved';
   }
 
   resolveHunt(tribe, action = this.pendingActions[tribe]) {
@@ -176,9 +257,12 @@ export class TribalSimulation {
     this.state.foodHistory.duskborn = this.state.foodHistory.duskborn.slice(0, 30);
 
     this.state.day += 1;
+    this.state.minute = DAY_START;
+    this.state.expeditions.ashvari = this.createExpedition('ashvari', WORLD_POINTS.ashvariHome);
+    this.state.expeditions.duskborn = this.createExpedition('duskborn', WORLD_POINTS.duskbornHome);
     this.state.ashvari.brain = this.ashvari.snapshot();
     this.state.duskborn.brain = this.duskborn.snapshot();
-    this.phase = 'decide';
+    this.phase = 'dawn';
   }
 
   progressReplenishment(resource) {
