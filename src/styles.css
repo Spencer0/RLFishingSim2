@@ -257,3 +257,20 @@ h2 { margin: 0 0 0.8rem; font-size: 1.1rem; color: #173553; }
 .math-arrow { font-weight: 700; }
 .math-symbols { margin: 0.2rem 0 0.8rem; padding-left: 1.1rem; }
 .math-symbols li { margin: 0.25rem 0; }
+
+.tribal-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.tribal-positive { background: rgba(64, 192, 87, 0.2); }
+.tribal-asym { background: rgba(245, 159, 0, 0.2); }
+.tribal-negative { background: rgba(224, 49, 49, 0.2); }
+.tribal-best-q { color: #2b8a3e; font-weight: 700; }
+.tribal-bar { height: 10px; background: #e9ecef; border-radius: 999px; margin-bottom: 0.3rem; }
+.tribal-bar span { display: block; height: 100%; border-radius: 999px; background: #228be6; }
+.tribal-history-grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0.28rem; }
+.tribal-history-day { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.tribal-history-day span { display: block; height: 12px; border-radius: 2px; }
+.tribal-stacked { height: 12px; display: flex; border-radius: 999px; overflow: hidden; margin-bottom: 0.25rem; background: #e9ecef; }
+.tribal-stacked span { display: block; height: 100%; }
+
+@media (max-width: 680px) {
+  .tribal-grid-2 { grid-template-columns: 1fr; }
+}

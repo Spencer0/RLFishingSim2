@@ -1,6 +1,7 @@
 import { FishingSimulation as SimpleFishingSimulation } from './simulation.js';
 import { AdvancedFishingSimulation } from './advancedSimulation.js';
 import { POMDPSimulation } from './pomdpSimulation.js';
+import { TribalSimulation } from './tribalSimulation.js';
 
 export class SimulationCatalog {
   constructor(entries = {}) {
@@ -58,5 +59,28 @@ export function createDefaultSimulationCatalog() {
     hasStockPanel: true,
     createSimulation: () => new POMDPSimulation()
   });
+
+  catalog.register('tribal', {
+    label: 'Tribal',
+    homeEmoji: '⚔️',
+    homeButtonLabel: 'Multi-Agent Tribal RL',
+    titleEmoji: '⚔️🌲',
+    titleText: 'RL Tribal Simulator',
+    inventoryEmoji: '🍖',
+    inventoryLabel: 'Food',
+    subtitle: 'Two tribes learning to hunt, fish, trade, or raid in a shared world.',
+    hasStockPanel: false,
+    tabs: [
+      { id: 'journalPane', label: '📓 Journal' },
+      { id: 'brainPane', label: '🧠 Brains' },
+      { id: 'payoffPane', label: '⚔️ Payoff' },
+      { id: 'qTablePane', label: '🗂️ Q Tables' },
+      { id: 'relationsPane', label: '🤝 Relations' },
+      { id: 'strategyPane', label: '📈 Strategy' },
+      { id: 'mathPane', label: '∑ Math' }
+    ],
+    createSimulation: () => new TribalSimulation()
+  });
+
   return catalog;
 }

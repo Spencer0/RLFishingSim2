@@ -22,6 +22,20 @@ export function buildPanelRenderKey(state) {
     });
   }
 
+
+  if (state.mode === 'tribal') {
+    return JSON.stringify({
+      day: state.day,
+      phase: state.phase,
+      forestStock: state.forestStock,
+      riverStock: state.riverStock,
+      ashvari: state.ashvari,
+      duskborn: state.duskborn,
+      jointHistory: state.jointHistory.slice(0, 30),
+      log: state.log.slice(0, 10)
+    });
+  }
+
   if (state.mode === 'pomdp') {
     return JSON.stringify({
       day: state.day,
