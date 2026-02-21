@@ -5,6 +5,7 @@ import { renderPOMDPScene } from './pomdpRenderer.js';
 import { buildPanelRenderKey } from './panelState.js';
 import { SimulationLoop } from './simulationLoop.js';
 import { SimulationPanelController } from './simulationPanelController.js';
+import { renderTribalScene } from './tribalRenderer.js';
 
 const app = document.querySelector('#app');
 if (!app) throw new Error('Missing app');
@@ -39,6 +40,19 @@ function renderHomeScreen() {
   });
 }
 
+
+function getTabsForConfig(config) {
+  if (config.tabs?.length) return config.tabs;
+  const tabs = [
+    { id: 'journalPane', label: '📓 Journal' },
+    { id: 'brainPane', label: '🧠 Brain' },
+    { id: 'qTablePane', label: '🗂️ Q Table' },
+    { id: 'mathPane', label: '∑ Math' }
+  ];
+  if (config.hasStockPanel) tabs.push({ id: 'stockPane', label: '📦 Stock' });
+  return tabs;
+}
+
 function startSimulation(mode) {
   stopSimulation();
   const config = simulationCatalog.get(mode);
@@ -71,18 +85,10 @@ function startSimulation(mode) {
       <section class="simulation-details glass" aria-label="Simulation details">
         <h2>Simulation Details</h2>
         <div class="details-tabs" role="tablist" aria-label="Simulation detail tabs">
-          <button class="detail-tab active" role="tab" aria-selected="true" aria-controls="journalPane" data-tab="journalPane">📓 Journal</button>
-          <button class="detail-tab" role="tab" aria-selected="false" aria-controls="brainPane" data-tab="brainPane">🧠 Brain</button>
-          <button class="detail-tab" role="tab" aria-selected="false" aria-controls="qTablePane" data-tab="qTablePane">🗂️ Q Table</button>
-          <button class="detail-tab" role="tab" aria-selected="false" aria-controls="mathPane" data-tab="mathPane">∑ Math</button>
-          ${config.hasStockPanel ? '<button class="detail-tab" role="tab" aria-selected="false" aria-controls="stockPane" data-tab="stockPane">📦 Stock</button>' : ''}
+          ${getTabsForConfig(config).map((tab, index) => `<button class="detail-tab ${index === 0 ? 'active' : ''}" role="tab" aria-selected="${index === 0}" aria-controls="${tab.id}" data-tab="${tab.id}">${tab.label}</button>`).join('')}
         </div>
         <div class="details-panes">
-          <section id="journalPane" class="details-pane active" role="tabpanel"><ul id="journal"></ul></section>
-          <section id="brainPane" class="details-pane" role="tabpanel"><div id="brain"></div></section>
-          <section id="qTablePane" class="details-pane" role="tabpanel"><div id="qtable"></div></section>
-          <section id="mathPane" class="details-pane" role="tabpanel"><div id="mathPanel"></div></section>
-          ${config.hasStockPanel ? '<section id="stockPane" class="details-pane" role="tabpanel"><div id="stockPanel"></div></section>' : ''}
+          ${getTabsForConfig(config).map((tab, index) => `<section id="${tab.id}" class="details-pane ${index === 0 ? 'active' : ''}" role="tabpanel"></section>`).join('')}
         </div>
       </section>
     </main>
@@ -105,14 +111,11 @@ function startSimulation(mode) {
 
   const panelController = new SimulationPanelController({
     statsElement: document.querySelector('#stats'),
-    brainElement: document.querySelector('#brain'),
-    journalElement: document.querySelector('#journal'),
-    qTableElement: document.querySelector('#qtable'),
-    stockPanelElement: document.querySelector('#stockPanel'),
-    mathElement: document.querySelector('#mathPanel'),
+    paneElements: [...document.querySelectorAll('.details-pane')].reduce((acc, pane) => ({ ...acc, [pane.id]: pane }), {}),
     tabButtons: [...document.querySelectorAll('.detail-tab')]
   });
   panelController.bindTabs();
+  panelController.setTabsConfig(getTabsForConfig(config));
 
   speedSlider?.addEventListener('input', (event) => {
     const speed = Number(event.target.value);
@@ -158,6 +161,8 @@ function drawWorld(ctx, canvas, state) {
     renderAdvancedSimulationScene(ctx, canvas, state);
   } else if (state.mode === 'pomdp') {
     renderPOMDPScene(ctx, canvas, state);
+  } else if (state.mode === 'tribal') {
+    renderTribalScene(ctx, canvas, state);
   } else {
     renderSimpleSimulationScene(ctx, canvas, state);
   }
