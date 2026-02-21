@@ -50,9 +50,27 @@ describe('tribal simulation', () => {
     const oldDusk = sim.duskborn.update.bind(sim.duskborn);
     sim.ashvari.update = (...args) => { ash += 1; oldAsh(...args); };
     sim.duskborn.update = (...args) => { dusk += 1; oldDusk(...args); };
-    sim.tick(); sim.tick(); sim.tick();
+    sim.tick(900);
     expect(ash).toBe(1);
     expect(dusk).toBe(1);
+  });
+
+
+  it('advances day only after scheduled finish window', () => {
+    const sim = new TribalSimulation();
+    sim.tick(60);
+    expect(sim.state.day).toBe(1);
+    sim.tick(780);
+    expect(sim.state.day).toBe(1);
+    sim.tick(120);
+    expect(sim.state.day).toBe(2);
+  });
+
+  it('moves expedition away from village during outbound phase', () => {
+    const sim = new TribalSimulation();
+    sim.tick(80);
+    const pos = sim.state.expeditions.ashvari.position;
+    expect(pos.x).toBeGreaterThan(130);
   });
 
   it('builds state key with buckets', () => {
