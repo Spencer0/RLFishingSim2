@@ -35,9 +35,11 @@ export class PolicyGradientCarSimulation {
       },
       car: { ...this.environment.car },
       track: {
-        topWallY: this.environment.getTopWallY(),
-        bottomWallY: this.environment.getBottomWallY(),
-        finishX: this.environment.trackLength,
+        center: { ...this.environment.trackCenter },
+        outerRadiusX: this.environment.outerRadiusX,
+        outerRadiusY: this.environment.outerRadiusY,
+        innerRadiusX: this.environment.innerRadiusX,
+        innerRadiusY: this.environment.innerRadiusY,
         fireTires: this.environment.fireTires.map((tire) => ({ ...tire }))
       },
       trainingComplete: false

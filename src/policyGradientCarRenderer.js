@@ -57,34 +57,42 @@ function drawFireTires(context, state, scene) {
   }
 }
 
-export function renderPolicyGradientCarScene(context, canvas, state) {
-  const scene = setupCanvas(context, canvas);
-  const trackTop = state.track.topWallY * scene.scaleY;
-  const trackBottom = state.track.bottomWallY * scene.scaleY;
+function drawOvalTrack(context, state, scene) {
+  const centerX = state.track.center.x * scene.scaleX;
+  const centerY = state.track.center.y * scene.scaleY;
+  const outerRadiusX = state.track.outerRadiusX * scene.scaleX;
+  const outerRadiusY = state.track.outerRadiusY * scene.scaleY;
+  const innerRadiusX = state.track.innerRadiusX * scene.scaleX;
+  const innerRadiusY = state.track.innerRadiusY * scene.scaleY;
 
-  context.fillStyle = '#e2e8f0';
-  context.fillRect(0, 0, scene.width, scene.height);
-
-  context.fillStyle = '#94a3b8';
-  context.fillRect(0, trackTop, scene.width, trackBottom - trackTop);
+  context.fillStyle = '#475569';
+  context.beginPath();
+  context.ellipse(centerX, centerY, outerRadiusX, outerRadiusY, 0, 0, Math.PI * 2);
+  context.ellipse(centerX, centerY, innerRadiusX, innerRadiusY, 0, 0, Math.PI * 2, true);
+  context.fill('evenodd');
 
   context.strokeStyle = '#0f172a';
   context.lineWidth = 4;
   context.beginPath();
-  context.moveTo(0, trackTop);
-  context.lineTo(scene.width, trackTop);
-  context.moveTo(0, trackBottom);
-  context.lineTo(scene.width, trackBottom);
+  context.ellipse(centerX, centerY, outerRadiusX, outerRadiusY, 0, 0, Math.PI * 2);
+  context.ellipse(centerX, centerY, innerRadiusX, innerRadiusY, 0, 0, Math.PI * 2);
   context.stroke();
 
-  const finishX = state.track.finishX * scene.scaleX;
   context.strokeStyle = '#16a34a';
   context.lineWidth = 4;
   context.beginPath();
-  context.moveTo(finishX, trackTop);
-  context.lineTo(finishX, trackBottom);
+  context.moveTo(centerX - 26, centerY - outerRadiusY);
+  context.lineTo(centerX + 26, centerY - outerRadiusY);
   context.stroke();
+}
 
+export function renderPolicyGradientCarScene(context, canvas, state) {
+  const scene = setupCanvas(context, canvas);
+
+  context.fillStyle = '#e2e8f0';
+  context.fillRect(0, 0, scene.width, scene.height);
+
+  drawOvalTrack(context, state, scene);
   drawFireTires(context, state, scene);
 
   const headingRad = (state.car.headingDeg * Math.PI) / 180;
