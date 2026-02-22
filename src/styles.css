@@ -274,3 +274,6 @@ h2 { margin: 0 0 0.8rem; font-size: 1.1rem; color: #173553; }
 @media (max-width: 680px) {
   .tribal-grid-2 { grid-template-columns: 1fr; }
 }
+
+#policyVizPanel { display: grid; gap: 0.5rem; }
+#policyVizPanel canvas { border: 1px solid rgba(64, 102, 134, 0.25); border-radius: 8px; background: #f8fbff; max-width: 100%; }
