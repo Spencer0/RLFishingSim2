@@ -6,6 +6,7 @@ import { buildPanelRenderKey } from './panelState.js';
 import { SimulationLoop } from './simulationLoop.js';
 import { SimulationPanelController } from './simulationPanelController.js';
 import { renderTribalScene } from './tribalRenderer.js';
+import { renderPolicyGradientCarScene } from './policyGradientCarRenderer.js';
 
 const app = document.querySelector('#app');
 if (!app) throw new Error('Missing app');
@@ -163,6 +164,8 @@ function drawWorld(ctx, canvas, state) {
     renderPOMDPScene(ctx, canvas, state);
   } else if (state.mode === 'tribal') {
     renderTribalScene(ctx, canvas, state);
+  } else if (state.mode === 'policy-gradient-car') {
+    renderPolicyGradientCarScene(ctx, canvas, state);
   } else {
     renderSimpleSimulationScene(ctx, canvas, state);
   }

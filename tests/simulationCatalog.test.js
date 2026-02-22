@@ -19,11 +19,13 @@ describe('SimulationCatalog', () => {
 });
 
 
-it('includes pomdp mode in default catalog', () => {
+it('includes pomdp and policy gradient car modes in default catalog', () => {
   const catalog = createDefaultSimulationCatalog();
   expect(catalog.listModes()).toContain('pomdp');
   expect(catalog.get('pomdp')?.label).toBe('Wildlife Rescue (POMDP)');
   expect(catalog.get('pomdp')?.homeEmoji).toBe('🦌');
   expect(catalog.get('simple')?.titleText).toBe('RL Fishing Simulator');
   expect(catalog.get('advanced')?.homeButtonLabel).toContain('Markov');
+  expect(catalog.listModes()).toContain('policy-gradient-car');
+  expect(catalog.get('policy-gradient-car')?.label).toBe('Policy Gradient Car');
 });

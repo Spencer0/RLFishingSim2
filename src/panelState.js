@@ -23,6 +23,19 @@ export function buildPanelRenderKey(state) {
   }
 
 
+
+  if (state.mode === 'policy-gradient-car') {
+    return JSON.stringify({
+      day: state.day,
+      minute: state.minute,
+      isPlaying: state.isPlaying,
+      trainingComplete: state.trainingComplete,
+      car: state.car,
+      policy: state.policy,
+      log: state.log.slice(0, 10)
+    });
+  }
+
   if (state.mode === 'tribal') {
     return JSON.stringify({
       day: state.day,
