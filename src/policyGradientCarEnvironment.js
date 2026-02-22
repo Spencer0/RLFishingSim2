@@ -5,6 +5,11 @@ export class CarEnvironment {
     this.wallMargin = wallMargin;
     this.speed = speed;
     this.trackLength = trackLength;
+    this.fireTires = [
+      { x: 220, y: 180, radius: 18 },
+      { x: 420, y: 315, radius: 18 },
+      { x: 600, y: 235, radius: 18 }
+    ];
     this.reset();
   }
 
@@ -38,13 +43,26 @@ export class CarEnvironment {
     ];
   }
 
+  isCollidingWithFireTire() {
+    const carCollisionRadius = 10;
+    return this.fireTires.some((tire) => {
+      const dx = this.car.x - tire.x;
+      const dy = this.car.y - tire.y;
+      const distanceSquared = dx * dx + dy * dy;
+      const maxDistance = tire.radius + carCollisionRadius;
+      return distanceSquared <= maxDistance * maxDistance;
+    });
+  }
+
   step(actionDeg) {
     this.car.headingDeg += actionDeg;
     const headingRad = (this.car.headingDeg * Math.PI) / 180;
     this.car.x += this.speed * Math.cos(headingRad);
     this.car.y += this.speed * Math.sin(headingRad);
 
-    const crashed = this.car.y < this.getTopWallY() || this.car.y > this.getBottomWallY();
+    const hitWall = this.car.y < this.getTopWallY() || this.car.y > this.getBottomWallY();
+    const hitFireTire = this.isCollidingWithFireTire();
+    const crashed = hitWall || hitFireTire;
     const finished = this.car.x >= this.trackLength;
 
     let reward = 0;

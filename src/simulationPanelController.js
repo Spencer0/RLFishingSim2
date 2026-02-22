@@ -1,5 +1,6 @@
 import { renderQTablePanel } from './qTablePanel.js';
 import { renderMathPanel } from './mathPanel.js';
+import { renderPolicyGradientCarMathPanel } from './policyGradientCarMathPanel.js';
 import { renderPOMDPQTablePanel } from './pomdpQTablePanel.js';
 import { renderPOMDPMathPanel } from './pomdpMathPanel.js';
 import { dominantBelief } from './pomdpBrain.js';
@@ -88,7 +89,11 @@ export class SimulationPanelController {
     if (tabId === 'brainPane') return `<div id="brain">${renderBrainPanel(state)}</div>`;
     if (tabId === 'stockPane') return `<div id="stockPanel">${renderStockPanel(state)}</div>`;
     if (tabId === 'mathPane') {
-      const math = state.mode === 'pomdp' ? renderPOMDPMathPanel() : (state.mode === 'tribal' ? renderTribalMathPanel() : renderMathPanel());
+      const math = state.mode === 'policy-gradient-car'
+        ? renderPolicyGradientCarMathPanel()
+        : (state.mode === 'pomdp'
+          ? renderPOMDPMathPanel()
+          : (state.mode === 'tribal' ? renderTribalMathPanel() : renderMathPanel()));
       return `<div id="mathPanel">${math}</div>`;
     }
     if (tabId === 'qTablePane') {

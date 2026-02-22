@@ -71,6 +71,18 @@ describe('Policy Gradient Car', () => {
     expect(result.reward).toBe(-1);
   });
 
+
+  it('fire tire collision triggers crash', () => {
+    const environment = new CarEnvironment();
+    const tire = environment.fireTires[0];
+    environment.car.x = tire.x;
+    environment.car.y = tire.y;
+    const result = environment.step(0);
+    expect(result.done).toBe(true);
+    expect(result.event).toBe('crash');
+    expect(result.reward).toBe(-1);
+  });
+
   it('finish line detection triggers when x exceeds track length', () => {
     const environment = new CarEnvironment();
     environment.car.x = environment.trackLength + 1;
