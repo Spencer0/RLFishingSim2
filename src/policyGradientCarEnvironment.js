@@ -1,26 +1,22 @@
 export class CarEnvironment {
-  constructor({ width = 800, height = 500, speed = 5 } = {}) {
+  constructor({ width = 400, height = 450, speed = 1 } = {}) {
     this.width = width;
     this.height = height;
     this.speed = speed;
-    this.trackCenter = { x: width / 2, y: height / 2 };
-    this.outerRadiusX = width * 0.42;
-    this.outerRadiusY = height * 0.38;
-    this.innerRadiusX = width * 0.27;
-    this.innerRadiusY = height * 0.17;
+    this.trackCenter = { x: width, y: height - 200 };
+    this.outerRadiusX = width * 0.5;
+    this.outerRadiusY = height * 0.5;
+    this.innerRadiusX = width * 0.25;
+    this.innerRadiusY = height * 0.25;
     this.midRadiusX = (this.outerRadiusX + this.innerRadiusX) / 2;
     this.midRadiusY = (this.outerRadiusY + this.innerRadiusY) / 2;
     this.startAngle = -Math.PI / 2;
 
     this.fireTires = [
-      { x: 530, y: 95, radius: 16 },
-      { x: 655, y: 165, radius: 16 },
-      { x: 680, y: 270, radius: 16 },
-      { x: 595, y: 360, radius: 16 },
-      { x: 440, y: 408, radius: 16 },
-      { x: 270, y: 390, radius: 16 },
-      { x: 145, y: 300, radius: 16 },
-      { x: 170, y: 155, radius: 16 }
+      {x: 550, y: 95, radius: 16},
+      //generate 10 more on the track
+      {x: 525, y: 300, radius: 16},
+      {x: 350, y: 115, radius: 16},
     ];
     this.reset();
   }
@@ -123,13 +119,16 @@ export class CarEnvironment {
     let event = 'running';
 
     if (crashed) {
-      reward = -1;
+      reward = -10;
       done = true;
       event = 'crash';
     } else if (finished) {
       reward = 1;
       done = true;
       event = 'finish';
+    } else {
+      //Not crashed, not finished,
+      reward = Math.max(thetaDelta, 0) * 2.0; //Reward progress around the track, but cap it to prevent weird outliers from destabilizing learning
     }
 
     return {

@@ -84,7 +84,7 @@ export class PolicyGradientCarSimulation {
       this.lossHistory.push(this.state.policy.lastLoss);
       this.lossHistory.splice(0, Math.max(0, this.lossHistory.length - 80));
 
-      if (this.consecutiveCompletions >= 3) {
+      if (this.consecutiveCompletions >= 100) {
         this.trainingComplete = true;
       }
 

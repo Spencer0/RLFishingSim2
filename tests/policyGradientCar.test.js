@@ -69,7 +69,7 @@ describe('Policy Gradient Car', () => {
     const result = environment.step(0);
     expect(result.done).toBe(true);
     expect(result.event).toBe('crash');
-    expect(result.reward).toBe(-1);
+    expect(result.reward).toBe(-10);
   });
 
   it('fire tire collision triggers crash', () => {
@@ -80,12 +80,12 @@ describe('Policy Gradient Car', () => {
     const result = environment.step(0);
     expect(result.done).toBe(true);
     expect(result.event).toBe('crash');
-    expect(result.reward).toBe(-1);
+    expect(result.reward).toBe(-10);
   });
 
   it('finish detection triggers after one completed lap', () => {
     const environment = new CarEnvironment();
-    environment.angularProgress = Math.PI * 2 - 0.01;
+    environment.angularProgress = Math.PI * 2 - 0.001;
     const result = environment.step(0);
     expect(result.done).toBe(true);
     expect(result.event).toBe('finish');
