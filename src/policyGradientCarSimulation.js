@@ -37,7 +37,8 @@ export class PolicyGradientCarSimulation {
       track: {
         topWallY: this.environment.getTopWallY(),
         bottomWallY: this.environment.getBottomWallY(),
-        finishX: this.environment.trackLength
+        finishX: this.environment.trackLength,
+        fireTires: this.environment.fireTires.map((tire) => ({ ...tire }))
       },
       trainingComplete: false
     };
