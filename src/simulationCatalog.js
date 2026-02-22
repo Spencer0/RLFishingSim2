@@ -2,6 +2,7 @@ import { FishingSimulation as SimpleFishingSimulation } from './simulation.js';
 import { AdvancedFishingSimulation } from './advancedSimulation.js';
 import { POMDPSimulation } from './pomdpSimulation.js';
 import { TribalSimulation } from './tribalSimulation.js';
+import { PolicyGradientCarSimulation } from './policyGradientCarSimulation.js';
 
 export class SimulationCatalog {
   constructor(entries = {}) {
@@ -58,6 +59,26 @@ export function createDefaultSimulationCatalog() {
     subtitle: 'Belief-state disease surveillance under partial observability.',
     hasStockPanel: true,
     createSimulation: () => new POMDPSimulation()
+  });
+
+
+  catalog.register('policy-gradient-car', {
+    label: 'Policy Gradient Car',
+    homeEmoji: '🚗',
+    homeButtonLabel: 'Policy Gradient Car',
+    titleEmoji: '🚗📈',
+    titleText: 'RL Driving Simulator',
+    inventoryEmoji: '🏁',
+    inventoryLabel: 'Runs',
+    subtitle: 'REINFORCE with a hand-built neural network and Gaussian steering policy.',
+    hasStockPanel: false,
+    tabs: [
+      { id: 'journalPane', label: '📓 Journal' },
+      { id: 'brainPane', label: '🧠 Brain' },
+      { id: 'qTablePane', label: '📉 Policy Visualization' },
+      { id: 'mathPane', label: '∑ Math' }
+    ],
+    createSimulation: () => new PolicyGradientCarSimulation()
   });
 
   catalog.register('tribal', {

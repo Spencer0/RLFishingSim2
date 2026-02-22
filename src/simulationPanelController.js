@@ -9,12 +9,14 @@ import { renderTribalQTablePanel } from './tribalQTablePanel.js';
 import { renderTribalRelationsPanel } from './tribalRelationsPanel.js';
 import { renderTribalStrategyPanel } from './tribalStrategyPanel.js';
 import { renderTribalMathPanel } from './tribalMathPanel.js';
+import { renderPolicyVisualizationPanel, drawPolicyVisualization } from './policyGradientCarVisualization.js';
 
 const MODE_STATUS_META = {
   simple: { inventoryEmoji: '🐟', inventoryLabel: 'Catch' },
   advanced: { inventoryEmoji: '🐟', inventoryLabel: 'Catch' },
   pomdp: { inventoryEmoji: '💊', inventoryLabel: 'Cures' },
-  tribal: { inventoryEmoji: '🍖', inventoryLabel: 'Food' }
+  tribal: { inventoryEmoji: '🍖', inventoryLabel: 'Food' },
+  'policy-gradient-car': { inventoryEmoji: '🏁', inventoryLabel: 'Runs' }
 };
 
 export function formatStatusReadout(state) {
@@ -90,6 +92,11 @@ export class SimulationPanelController {
       return `<div id="mathPanel">${math}</div>`;
     }
     if (tabId === 'qTablePane') {
+      if (state.mode === 'policy-gradient-car') {
+        const panel = renderPolicyVisualizationPanel(state);
+        queueMicrotask(() => drawPolicyVisualization(state));
+        return `<div id="qtable">${panel}</div>`;
+      }
       const table = state.mode === 'pomdp' ? renderPOMDPQTablePanel(state) : (state.mode === 'tribal' ? renderTribalQTablePanel(state) : renderQTablePanel(state));
       return `<div id="qtable">${table}</div>`;
     }
@@ -124,6 +131,18 @@ function renderBrainPanel(state) {
       <p><b>Q(Ocean)</b>: ${qValuesForState.ocean.toFixed(2)}</p>
       <p><b>Total Reward</b>: ${state.brain.totalReward.toFixed(1)} coins</p>`;
   }
+
+  if (state.mode === 'policy-gradient-car') {
+    return `<p><b>Episodes</b>: ${state.policy.episode}</p>
+      <p><b>Consecutive completions</b>: ${state.policy.consecutiveCompletions} / 3</p>
+      <p><b>Current μ</b>: ${state.policy.lastMu.toFixed(3)}</p>
+      <p><b>Current σ</b>: ${state.policy.lastSigma.toFixed(3)}</p>
+      <p><b>Last Action</b>: ${state.policy.lastAction.toFixed(3)}°</p>
+      <p><b>Last Return</b>: ${state.policy.lastReturn.toFixed(3)}</p>
+      <p><b>Last Loss</b>: ${state.policy.lastLoss.toFixed(4)}</p>
+      <p><b>Training</b>: ${state.trainingComplete ? 'Complete (frozen policy)' : 'In progress'}</p>`;
+  }
+
 
   if (state.mode === 'pomdp') {
     const habitats = ['wetland', 'forest', 'savanna'];
