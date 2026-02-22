@@ -33,5 +33,5 @@ test('can launch policy gradient car simulation', async ({ page }) => {
   await page.getByRole('button', { name: 'Policy Gradient Car' }).click();
   await expect(page.getByRole('heading', { name: /RL Driving Simulator \(Policy Gradient Car\)/ })).toBeVisible();
   await page.getByRole('tab', { name: /Policy Visualization/ }).click();
-  await expect(page.getByText(/Consecutive completions/)).toBeVisible();
+  await expect(page.locator('#qtable').getByText('Consecutive completions', { exact: true })).toBeVisible();
 });
