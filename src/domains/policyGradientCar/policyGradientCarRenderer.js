@@ -1,4 +1,4 @@
-import { setupCanvas } from './scenePrimitives.js';
+import { setupCanvas } from '../../shared/primitives/scenePrimitives.js';
 
 let fireTireSprite = null;
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { AdvancedFishingSimulation } from '../src/advancedSimulation.js';
+import { AdvancedFishingSimulation } from '../src/domains/advanced/advancedSimulation.js';
 
 describe('AdvancedFishingSimulation reward attribution', () => {
   it('updates Q-values immediately on each fishing action and not during selling', () => {

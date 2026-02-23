@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderQTablePanel } from '../src/qTablePanel.js';
+import { renderQTablePanel } from '../src/domains/simple/qTablePanel.js';
 
 describe('renderQTablePanel', () => {
   it('renders simple simulation table with action columns and status row', () => {

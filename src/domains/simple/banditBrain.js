@@ -1,3 +1,5 @@
+import { chooseEpsilonGreedyAction } from '../../shared/rl/qLearning.js';
+
 export class EpsilonGreedyBandit {
   constructor(options) {
     this.epsilon = options.epsilon;
@@ -7,24 +9,22 @@ export class EpsilonGreedyBandit {
     this.totalReward = 0;
   }
 
-  chooseSpot(availableSpots = ['lake', 'river'], rand = Math.random()) {
+  chooseSpot(availableSpots = ['lake', 'river'], randomValue = Math.random()) {
     if (availableSpots.length === 0) return 'lake';
 
-    if (rand < this.epsilon) {
-      const index = Math.floor((rand / this.epsilon) * availableSpots.length);
-      return availableSpots[Math.min(index, availableSpots.length - 1)];
-    }
-
-    return availableSpots.reduce((best, spot) => (
-      this.qValues[spot] > this.qValues[best] ? spot : best
-    ), availableSpots[0]);
+    return chooseEpsilonGreedyAction({
+      actionValuesByName: this.qValues,
+      actionNames: availableSpots,
+      explorationRate: this.epsilon,
+      randomValue
+    });
   }
 
   update(spot, reward) {
     this.visits[spot] += 1;
-    const n = this.visits[spot];
-    const old = this.qValues[spot];
-    this.qValues[spot] = old + (reward - old) / n;
+    const visitCount = this.visits[spot];
+    const previousQValue = this.qValues[spot];
+    this.qValues[spot] = previousQValue + (reward - previousQValue) / visitCount;
     this.totalReward += reward;
   }
 

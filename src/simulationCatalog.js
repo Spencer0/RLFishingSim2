@@ -1,8 +1,8 @@
-import { FishingSimulation as SimpleFishingSimulation } from './simulation.js';
-import { AdvancedFishingSimulation } from './advancedSimulation.js';
-import { POMDPSimulation } from './pomdpSimulation.js';
-import { TribalSimulation } from './tribalSimulation.js';
-import { PolicyGradientCarSimulation } from './policyGradientCarSimulation.js';
+import { FishingSimulation as SimpleFishingSimulation } from './domains/simple/simulation.js';
+import { AdvancedFishingSimulation } from './domains/advanced/advancedSimulation.js';
+import { POMDPSimulation } from './domains/pomdp/pomdpSimulation.js';
+import { TribalSimulation } from './domains/tribal/tribalSimulation.js';
+import { PolicyGradientCarSimulation } from './domains/policyGradientCar/policyGradientCarSimulation.js';
 
 export class SimulationCatalog {
   constructor(entries = {}) {

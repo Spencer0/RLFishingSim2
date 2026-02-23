@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TabularMarkovBrain } from '../src/markovBrain.js';
+import { TabularMarkovBrain } from '../src/domains/advanced/markovBrain.js';
 
 describe('TabularMarkovBrain', () => {
   it('initializes and updates q values for state-action transitions', () => {

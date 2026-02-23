@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { POMDPBrain, sampleObservation } from '../src/pomdpBrain.js';
-import { POMDPSimulation, computeBeliefAccuracy } from '../src/pomdpSimulation.js';
+import { POMDPBrain, sampleObservation } from '../src/domains/pomdp/pomdpBrain.js';
+import { POMDPSimulation, computeBeliefAccuracy } from '../src/domains/pomdp/pomdpSimulation.js';
 
 describe('POMDP belief machinery', () => {
   it('updates belief with Bayes rule and keeps distribution normalized', () => {

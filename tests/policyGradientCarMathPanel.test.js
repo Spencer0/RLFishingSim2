@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderPolicyGradientCarMathPanel } from '../src/policyGradientCarMathPanel.js';
+import { renderPolicyGradientCarMathPanel } from '../src/domains/policyGradientCar/policyGradientCarMathPanel.js';
 
 describe('renderPolicyGradientCarMathPanel', () => {
   it('renders policy gradient formula and key terms', () => {

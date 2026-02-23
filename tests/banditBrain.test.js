@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EpsilonGreedyBandit } from '../src/banditBrain.js';
+import { EpsilonGreedyBandit } from '../src/domains/simple/banditBrain.js';
 
 describe('EpsilonGreedyBandit', () => {
   it('chooses best action when not exploring', () => {

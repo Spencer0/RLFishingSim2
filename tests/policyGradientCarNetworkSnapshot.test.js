@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NeuralNetwork } from '../src/policyGradientCarNetwork.js';
+import { NeuralNetwork } from '../src/domains/policyGradientCar/policyGradientCarNetwork.js';
 
 describe('NeuralNetwork snapshots', () => {
   it('round-trips model weights via snapshot', () => {
