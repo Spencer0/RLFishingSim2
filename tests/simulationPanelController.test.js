@@ -22,4 +22,26 @@ describe('formatStatusReadout', () => {
     });
     expect(status).toBe('Day 12 · 🏁 12 Attempts · ✅ 3 Completions · Coins 0');
   });
+
+  it('renders lap streaks for ppo figure-8 mode', () => {
+    const status = formatStatusReadout({
+      mode: 'ppo-figure-8',
+      day: 5,
+      fishInventory: 18,
+      coins: 17,
+      policy: { consecutiveLaps: 4 }
+    });
+    expect(status).toBe('Day 5 · 🏁 18 Attempts · ♾️ 4 Consecutive Laps · Coins 17');
+  });
+
+  it('renders tribal status with in-day time and faction food', () => {
+    const status = formatStatusReadout({
+      mode: 'tribal',
+      day: 6,
+      minute: 125,
+      ashvari: { food: 7 },
+      duskborn: { food: 9 }
+    });
+    expect(status).toBe('Day 6 · 02:05 · 🍖 Ashvari 7 · 🍖 Duskborn 9');
+  });
 });

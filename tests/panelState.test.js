@@ -54,4 +54,50 @@ describe('buildPanelRenderKey', () => {
 
     expect(keyA).not.toBe(keyB);
   });
+
+  it('builds specialized keys for policy-gradient-car, tribal, and pomdp', () => {
+    const policyGradientKey = buildPanelRenderKey({
+      mode: 'policy-gradient-car',
+      day: 2,
+      minute: 32,
+      isPlaying: true,
+      trainingComplete: false,
+      car: { x: 1 },
+      policy: { episode: 2 },
+      log: ['entry']
+    });
+
+    const tribalKey = buildPanelRenderKey({
+      mode: 'tribal',
+      day: 7,
+      phase: 'dawn',
+      forestStock: 12,
+      riverStock: 8,
+      ashvari: { food: 2 },
+      duskborn: { food: 3 },
+      jointHistory: ['AA'],
+      log: ['tribal']
+    });
+
+    const pomdpKey = buildPanelRenderKey({
+      mode: 'pomdp',
+      day: 4,
+      minute: 40,
+      fishInventory: 3,
+      coins: 15,
+      isPlaying: false,
+      truePrevalence: { wetland: 'low', forest: 'high', savanna: 'medium' },
+      belief: { wetland: {}, forest: {}, savanna: {} },
+      beliefKey: 'lhm',
+      lastObservations: { wetland: 'low', forest: 'high', savanna: 'medium' },
+      transitionTimers: {},
+      daysSinceLastVisit: {},
+      brain: { epsilon: 0.1 },
+      log: ['pomdp']
+    });
+
+    expect(policyGradientKey).toContain('trainingComplete');
+    expect(tribalKey).toContain('jointHistory');
+    expect(pomdpKey).toContain('beliefKey');
+  });
 });

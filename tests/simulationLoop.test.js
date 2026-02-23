@@ -122,4 +122,45 @@ describe('SimulationLoop', () => {
     expect(secondFrameTicks).toBeLessThanOrEqual(firstFrameTicks);
   });
 
+  it('exposes minutes-per-second conversion and stops active frame on stop()', () => {
+    let cancelledFrameId = null;
+    const loop = new SimulationLoop({
+      simulationSpeed: 2,
+      requestFrame: () => 42,
+      cancelFrame: (id) => {
+        cancelledFrameId = id;
+      }
+    });
+
+    expect(loop.getSimulationMinutesPerSecond()).toBe(192);
+
+    loop.start({
+      getSimulation: () => ({ getState: () => ({ isPlaying: false }) }),
+      onDraw: () => {},
+      onSimulationAdvanced: () => {}
+    });
+
+    loop.stop();
+    expect(cancelledFrameId).toBe(42);
+  });
+
+  it('clears frame when simulation is unavailable', () => {
+    let frameCallback = null;
+    const loop = new SimulationLoop({
+      requestFrame: (cb) => {
+        frameCallback = cb;
+        return 7;
+      },
+      cancelFrame: () => {}
+    });
+
+    loop.start({
+      getSimulation: () => null,
+      onDraw: () => {},
+      onSimulationAdvanced: () => {}
+    });
+
+    frameCallback(1010);
+    expect(loop.frameId).toBeNull();
+  });
 });
