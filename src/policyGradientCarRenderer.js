@@ -42,10 +42,11 @@ const carSvg = supportsPath2D
     }
   : null;
 
-function drawHotRodCar(context, x, y, headingRad) {
+function drawHotRodCar(context, x, y, headingRad, scale = 1) {
   context.save();
   context.translate(x, y);
   context.rotate(headingRad + Math.PI / 2);
+  context.scale(scale, scale);
 
   if (carSvg) {
     context.fillStyle = '#9f1239';
@@ -73,8 +74,8 @@ function drawHotRodCar(context, x, y, headingRad) {
   context.restore();
 }
 
-function drawCarExplosion(context, x, y, frame = 2) {
-  const scale = frame === 2 ? 1 : 1.3;
+function drawCarExplosion(context, x, y, frame = 2, baseScale = 1) {
+  const scale = (frame === 2 ? 1 : 1.3) * baseScale;
   const alpha = frame === 2 ? 0.85 : 0.62;
   context.save();
   context.translate(x, y);
@@ -107,8 +108,9 @@ function drawCarExplosion(context, x, y, frame = 2) {
 function drawFireTires(context, state, scene) {
   const sprite = getFireTireSprite();
   const tires = state.track.fireTires ?? [];
+  const spriteScale = Math.min(scene.scaleX, scene.scaleY);
   for (const tire of tires) {
-    const size = tire.radius * 2.4;
+    const size = tire.radius * 2.4 * spriteScale;
     const x = tire.x * scene.scaleX - size / 2;
     const y = tire.y * scene.scaleY - size / 2;
     if (sprite.complete) {
@@ -116,7 +118,7 @@ function drawFireTires(context, state, scene) {
     } else {
       context.fillStyle = '#111827';
       context.beginPath();
-      context.arc(tire.x * scene.scaleX, tire.y * scene.scaleY, tire.radius * scene.scaleX, 0, Math.PI * 2);
+      context.arc(tire.x * scene.scaleX, tire.y * scene.scaleY, tire.radius * spriteScale, 0, Math.PI * 2);
       context.fill();
     }
   }
@@ -201,12 +203,13 @@ export function renderPolicyGradientCarScene(context, canvas, state) {
   const headingRad = (state.car.headingDeg * Math.PI) / 180;
   const carX = state.car.x * scene.scaleX;
   const carY = state.car.y * scene.scaleY;
+  const carScale = Math.min(scene.scaleX, scene.scaleY);
 
   if (state.carCrashFrame > 0) {
-    drawHotRodCar(context, carX, carY, headingRad);
-    drawCarExplosion(context, carX, carY, state.carCrashFrame);
+    drawHotRodCar(context, carX, carY, headingRad, carScale);
+    drawCarExplosion(context, carX, carY, state.carCrashFrame, carScale);
   } else {
-    drawHotRodCar(context, carX, carY, headingRad);
+    drawHotRodCar(context, carX, carY, headingRad, carScale);
   }
 
   if (state.trainingComplete) {
