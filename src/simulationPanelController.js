@@ -17,7 +17,7 @@ const MODE_STATUS_META = {
   advanced: { inventoryEmoji: '🐟', inventoryLabel: 'Catch' },
   pomdp: { inventoryEmoji: '💊', inventoryLabel: 'Cures' },
   tribal: { inventoryEmoji: '🍖', inventoryLabel: 'Food' },
-  'policy-gradient-car': { inventoryEmoji: '🏁', inventoryLabel: 'Runs' }
+  'policy-gradient-car': { inventoryEmoji: '🏁', inventoryLabel: 'Attempts' }
 };
 
 export function formatStatusReadout(state) {
@@ -27,6 +27,9 @@ export function formatStatusReadout(state) {
     return `Day ${state.day} · ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')} · 🍖 Ashvari ${state.ashvari.food} · 🍖 Duskborn ${state.duskborn.food}`;
   }
   const meta = MODE_STATUS_META[state.mode] ?? MODE_STATUS_META.simple;
+  if (state.mode === 'policy-gradient-car') {
+    return `Day ${state.day} · 🏁 ${state.fishInventory} ${meta.inventoryLabel} · ✅ ${state.policy?.totalCompletions ?? 0} Completions · Coins ${state.coins}`;
+  }
   return `Day ${state.day} · ${meta.inventoryEmoji} ${state.fishInventory} ${meta.inventoryLabel} · Coins ${state.coins}`;
 }
 
@@ -38,6 +41,7 @@ export class SimulationPanelController {
     this.tabsConfig = [];
     this.qTableScrollTop = 0;
     this.qTableMarkupKey = '';
+    this.journalMarkupKey = '';
   }
 
   setTabsConfig(tabsConfig) {
@@ -45,8 +49,22 @@ export class SimulationPanelController {
   }
 
   bindTabs() {
-    this.tabButtons.forEach((button) => {
+    this.tabButtons.forEach((button, index) => {
       button.addEventListener('click', () => this.activateTab(button.dataset.tab));
+      button.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft' && event.key !== 'Home' && event.key !== 'End') return;
+        event.preventDefault();
+        const lastIndex = this.tabButtons.length - 1;
+        let nextIndex = index;
+        if (event.key === 'ArrowRight') nextIndex = index === lastIndex ? 0 : index + 1;
+        if (event.key === 'ArrowLeft') nextIndex = index === 0 ? lastIndex : index - 1;
+        if (event.key === 'Home') nextIndex = 0;
+        if (event.key === 'End') nextIndex = lastIndex;
+        const nextButton = this.tabButtons[nextIndex];
+        if (!nextButton) return;
+        nextButton.focus();
+        this.activateTab(nextButton.dataset.tab);
+      });
     });
   }
 
@@ -60,14 +78,24 @@ export class SimulationPanelController {
     for (const pane of document.querySelectorAll('.details-pane')) {
       pane.classList.toggle('active', pane.id === tabId);
     }
+
+    if (this.lastStateSnapshot) {
+      this.refresh(this.lastStateSnapshot);
+    }
   }
 
   refresh(state) {
+    this.lastStateSnapshot = state;
     this.statsElement.textContent = formatStatusReadout(state);
 
     this.tabsConfig.forEach((tab) => {
       const pane = this.paneElements[tab.id];
-      if (!pane) return;
+      if (!pane || !pane.classList.contains('active')) return;
+      if (tab.id === 'journalPane') {
+        const nextJournalKey = state.log.slice(0, 10).join('|');
+        if (nextJournalKey === this.journalMarkupKey) return;
+        this.journalMarkupKey = nextJournalKey;
+      }
       pane.innerHTML = this.renderPanelForTab(tab.id, state);
 
       if (tab.id === 'qTablePane') {

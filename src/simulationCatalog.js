@@ -69,7 +69,7 @@ export function createDefaultSimulationCatalog() {
     titleEmoji: '🚗📈',
     titleText: 'RL Driving Simulator',
     inventoryEmoji: '🏁',
-    inventoryLabel: 'Runs',
+    inventoryLabel: 'Attempts',
     subtitle: 'REINFORCE with a hand-built neural network and Gaussian steering policy.',
     hasStockPanel: false,
     tabs: [
