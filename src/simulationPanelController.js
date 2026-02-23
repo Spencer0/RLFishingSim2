@@ -140,7 +140,7 @@ export class SimulationPanelController {
       }
       if (state.mode === 'ppo-figure-8') {
         const panel = renderPPOFigure8VisualizationPanel(state);
-        queueMicrotask(() => drawPPOFigure8Panels(state, window.__activeSimulationAgent));
+        queueMicrotask(() => drawPPOFigure8Panels(state, state.agent));
         return `<div id="qtable">${panel}</div>`;
       }
       const table = state.mode === 'pomdp' ? renderPOMDPQTablePanel(state) : (state.mode === 'tribal' ? renderTribalQTablePanel(state) : renderQTablePanel(state));

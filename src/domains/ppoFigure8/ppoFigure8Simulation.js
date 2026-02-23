@@ -48,7 +48,8 @@ export class PPOFigure8Simulation {
         criticSpeech: 'Looking good out there!',
         bubbleAlpha: 1
       },
-      trainingComplete: false
+      trainingComplete: false,
+      agent: this.agent
     };
   }
 
@@ -90,8 +91,9 @@ export class PPOFigure8Simulation {
         const crashRate = this.crashHistory.reduce((a, b) => a + b, 0) / Math.max(1, this.crashHistory.length);
         this.state.policy.criticSpeech = pickCriticMood({ valueTrend: trend, advantageMean: this.state.policy.lastAdvantageMean, crashRate, consecutiveLaps: this.consecutiveLaps });
         this.state.policy.bubbleAlpha = 0.35;
+      } else {
+        this.state.policy.bubbleAlpha = Math.min(1, (this.state.policy.bubbleAlpha ?? 1) + 0.05);
       }
-      this.state.policy.bubbleAlpha = Math.min(1, (this.state.policy.bubbleAlpha ?? 1) + 0.05);
 
       if (this.consecutiveLaps >= 50) this.trainingComplete = true;
       this.state.trainingComplete = this.trainingComplete;

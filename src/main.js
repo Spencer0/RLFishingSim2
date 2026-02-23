@@ -68,7 +68,6 @@ function startSimulation(mode) {
   if (!config) throw new Error(`Unknown simulation mode: ${mode}`);
 
   activeSimulation = config.createSimulation();
-  window.__activeSimulationAgent = activeSimulation.agent;
 
   const deployButtonMarkup = config.supportsDeployment
     ? '<button id="deployModel" class="btn deploy" aria-label="Deploy trained model">🚀 Deploy the model!</button>'

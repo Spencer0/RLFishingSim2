@@ -53,6 +53,7 @@ function drawNetwork(ctx, canvas, network, labels = []) {
 }
 
 export function drawPPOFigure8Panels(state, agent) {
+  if (!agent || !agent.actor || !agent.critic) return;
   const actorCanvas = document.querySelector('#ppoActorBrain');
   const criticCanvas = document.querySelector('#ppoCriticBrain');
   const policyCanvas = document.querySelector('#ppoPolicyCurve');
