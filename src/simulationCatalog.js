@@ -3,6 +3,7 @@ import { AdvancedFishingSimulation } from './domains/advanced/advancedSimulation
 import { POMDPSimulation } from './domains/pomdp/pomdpSimulation.js';
 import { TribalSimulation } from './domains/tribal/tribalSimulation.js';
 import { PolicyGradientCarSimulation } from './domains/policyGradientCar/policyGradientCarSimulation.js';
+import { PPOFigure8Simulation } from './domains/ppoFigure8/ppoFigure8Simulation.js';
 
 export class SimulationCatalog {
   constructor(entries = {}) {
@@ -80,6 +81,25 @@ export function createDefaultSimulationCatalog() {
     ],
     supportsDeployment: true,
     createSimulation: () => new PolicyGradientCarSimulation()
+  });
+
+  catalog.register('ppo-figure-8', {
+    label: 'PPO Figure-8',
+    homeEmoji: '🏎️',
+    homeButtonLabel: 'PPO Figure-8',
+    titleEmoji: '🏎️♾️',
+    titleText: 'RL Driving Simulator',
+    inventoryEmoji: '🏁',
+    inventoryLabel: 'Attempts',
+    subtitle: 'PPO-Clip with Actor/Critic on a figure-8 track.',
+    hasStockPanel: false,
+    tabs: [
+      { id: 'journalPane', label: '📓 Journal' },
+      { id: 'brainPane', label: '🧠 Brain' },
+      { id: 'qTablePane', label: '📉 Policy Visualization' },
+      { id: 'mathPane', label: '∑ Math' }
+    ],
+    createSimulation: () => new PPOFigure8Simulation()
   });
 
   catalog.register('tribal', {
