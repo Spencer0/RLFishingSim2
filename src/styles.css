@@ -195,10 +195,12 @@ h2 { margin: 0 0 0.8rem; font-size: 1.1rem; color: #173553; }
 
 .details-pane.active {
   display: block;
+  max-height: 40vh;
+  overflow: auto;
 }
 
 #brain, #stockPanel, #qtable, #mathPanel { margin-top: 0.25rem; }
-#journal { margin: 0.25rem 0 0; padding-left: 1rem; max-height: 32vh; overflow: auto; }
+#journal { margin: 0.25rem 0 0; padding-left: 1rem; max-height: 32vh; overflow: auto; user-select: text; }
 #journal li { margin: 0.35rem 0; line-height: 1.35; color: #23435f; }
 
 .qtable-caption { margin: 0 0 0.5rem; color: #244766; font-size: 0.88rem; }

@@ -9,6 +9,7 @@ export class PolicyGradientCarSimulation {
     this.episode = 1;
     this.timestep = 0;
     this.consecutiveCompletions = 0;
+    this.totalCompletions = 0;
     this.trainingComplete = false;
     this.lossHistory = [];
     this.currentState = this.environment.reset();
@@ -18,12 +19,13 @@ export class PolicyGradientCarSimulation {
       mode: this.mode,
       day: 1,
       minute: 0,
-      fishInventory: 0,
+      fishInventory: 1,
       coins: 0,
       isPlaying: true,
       log: ['Policy Gradient Car simulation started.'],
       policy: {
         episode: this.episode,
+        totalCompletions: this.totalCompletions,
         timestep: this.timestep,
         consecutiveCompletions: this.consecutiveCompletions,
         lastMu: 0,
@@ -44,6 +46,8 @@ export class PolicyGradientCarSimulation {
       },
       trainingComplete: false
     };
+
+    this.pendingEpisodeEnd = null;
   }
 
   getState() { return this.state; }
@@ -51,6 +55,16 @@ export class PolicyGradientCarSimulation {
 
   tick() {
     if (!this.state.isPlaying) return;
+
+    if (this.pendingEpisodeEnd) {
+      this.state.minute += 1;
+      this.pendingEpisodeEnd.explosionFrames = Math.max(0, this.pendingEpisodeEnd.explosionFrames - 1);
+      this.state.carCrashFrame = this.pendingEpisodeEnd.explosionFrames;
+      if (this.pendingEpisodeEnd.explosionFrames === 0) {
+        this.finalizeEpisodeReset();
+      }
+      return;
+    }
 
     const actionData = this.agent.selectAction(this.currentState, this.trainingComplete);
     const transition = this.environment.step(actionData.action);
@@ -67,15 +81,12 @@ export class PolicyGradientCarSimulation {
     this.state.policy.lastSigma = actionData.sigma;
     this.state.policy.lastAction = actionData.action;
     this.state.policy.timestep = this.timestep;
+    this.state.carCrashFrame = 0;
 
     if (transition.done) {
-      if (transition.event === 'finish') {
-        this.consecutiveCompletions += 1;
-        this.state.log.unshift(`Episode ${this.episode}: finish +1.`);
-      } else {
-        this.consecutiveCompletions = 0;
-        this.state.log.unshift(`Episode ${this.episode}: crash -1.`);
-      }
+      const completedLap = transition.event === 'finish';
+      this.consecutiveCompletions = completedLap ? this.consecutiveCompletions + 1 : 0;
+      if (completedLap) this.totalCompletions += 1;
 
       const result = this.trainingComplete ? { returns: [0], loss: this.state.policy.lastLoss } : this.agent.endEpisode();
       this.lastReturn = result.returns[0] ?? 0;
@@ -88,17 +99,58 @@ export class PolicyGradientCarSimulation {
         this.trainingComplete = true;
       }
 
-      this.episode += 1;
-      this.timestep = 0;
-      this.currentState = this.environment.reset();
-      this.state.car = { ...this.environment.car };
-      this.state.day = this.episode;
+      this.state.log.unshift(this.composeJournalEntry({
+        completedLap,
+        actionData,
+        transition,
+        loss: this.state.policy.lastLoss,
+        returns: this.lastReturn
+      }));
+
+      if (completedLap) {
+        this.finalizeEpisodeReset();
+      } else {
+        this.pendingEpisodeEnd = { explosionFrames: 2 };
+        this.state.carCrashFrame = this.pendingEpisodeEnd.explosionFrames;
+      }
+
+      this.state.fishInventory = this.episode;
+      this.state.policy.totalCompletions = this.totalCompletions;
+      this.state.policy.consecutiveCompletions = this.consecutiveCompletions;
+      this.state.policy.lossHistory = this.lossHistory;
+      this.state.trainingComplete = this.trainingComplete;
+      this.state.log = this.state.log.slice(0, 16);
+      return;
     }
 
     this.state.policy.episode = this.episode;
+    this.state.fishInventory = this.episode;
+    this.state.policy.totalCompletions = this.totalCompletions;
     this.state.policy.consecutiveCompletions = this.consecutiveCompletions;
     this.state.policy.lossHistory = this.lossHistory;
     this.state.trainingComplete = this.trainingComplete;
     this.state.log = this.state.log.slice(0, 16);
+  }
+
+  finalizeEpisodeReset() {
+    this.episode += 1;
+    this.timestep = 0;
+    this.currentState = this.environment.reset();
+    this.state.car = { ...this.environment.car };
+    this.state.day = this.episode;
+    this.pendingEpisodeEnd = null;
+    this.state.carCrashFrame = 0;
+    this.state.policy.episode = this.episode;
+    this.state.fishInventory = this.episode;
+    this.state.policy.totalCompletions = this.totalCompletions;
+  }
+
+  composeJournalEntry({ completedLap, actionData, transition, loss, returns }) {
+    const drift = Math.abs(actionData.action - actionData.mu);
+    const confidence = actionData.sigma < 0.6 ? 'locked in' : (actionData.sigma < 1.2 ? 'steady' : 'exploratory');
+    const driverLine = completedLap
+      ? `I kept the line clean and crossed the finish with a smooth ${actionData.action.toFixed(2)}° steer.`
+      : `I overcooked that corner and kissed the barrier after a ${actionData.action.toFixed(2)}° twitch.`;
+    return `Attempt ${this.episode}: ${driverLine} Insight → μ ${actionData.mu.toFixed(2)}°, σ ${actionData.sigma.toFixed(2)} (${confidence}), action drift ${drift.toFixed(2)}°, reward ${transition.reward.toFixed(2)}, return ${returns.toFixed(2)}, loss ${loss.toFixed(4)}.`;
   }
 }

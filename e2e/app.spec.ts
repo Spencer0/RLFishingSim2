@@ -35,3 +35,37 @@ test('can launch policy gradient car simulation', async ({ page }) => {
   await page.getByRole('tab', { name: /Policy Visualization/ }).click();
   await expect(page.locator('#policyVizPanel').getByText(/Consecutive completions/)).toBeVisible();
 });
+
+test('keyboard tab navigation works inside simulation details', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Policy Gradient Car' }).click();
+
+  const journalTab = page.getByRole('tab', { name: /Journal/ });
+  const brainTab = page.getByRole('tab', { name: /Brain/ });
+  const policyTab = page.getByRole('tab', { name: /Policy Visualization/ });
+
+  await journalTab.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(brainTab).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('ArrowRight');
+  await expect(policyTab).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('Home');
+  await expect(journalTab).toHaveAttribute('aria-selected', 'true');
+});
+
+test('simulation speed slider can be toggled', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Policy Gradient Car' }).click();
+
+  const slider = page.getByRole('slider', { name: /Simulation speed from one to one hundred times/ });
+  const speedLabel = page.locator('#simSpeedValue');
+  await expect(speedLabel).toHaveText('10x');
+
+  await slider.fill('45');
+  await expect(speedLabel).toHaveText('45x');
+
+  await slider.fill('5');
+  await expect(speedLabel).toHaveText('5x');
+});

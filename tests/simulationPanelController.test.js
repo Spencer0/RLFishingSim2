@@ -11,4 +11,15 @@ describe('formatStatusReadout', () => {
     const status = formatStatusReadout({ mode: 'pomdp', day: 9, fishInventory: 5, coins: 220 });
     expect(status).toBe('Day 9 · 💊 5 Cures · Coins 220');
   });
+
+  it('renders attempts and completions for policy gradient car mode', () => {
+    const status = formatStatusReadout({
+      mode: 'policy-gradient-car',
+      day: 12,
+      fishInventory: 12,
+      coins: 0,
+      policy: { totalCompletions: 3 }
+    });
+    expect(status).toBe('Day 12 · 🏁 12 Attempts · ✅ 3 Completions · Coins 0');
+  });
 });
