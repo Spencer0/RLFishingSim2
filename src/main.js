@@ -7,6 +7,7 @@ import { SimulationLoop } from './simulationLoop.js';
 import { SimulationPanelController } from './simulationPanelController.js';
 import { renderTribalScene } from './domains/tribal/tribalRenderer.js';
 import { renderPolicyGradientCarScene } from './domains/policyGradientCar/policyGradientCarRenderer.js';
+import { renderPPOFigure8Scene } from './domains/ppoFigure8/ppoFigure8Visualization.js';
 import {
   DEPLOYMENT_EPISODES_PER_LANE,
   DEPLOYMENT_LANES,
@@ -316,6 +317,8 @@ function drawWorld(ctx, canvas, state) {
     renderTribalScene(ctx, canvas, state);
   } else if (state.mode === 'policy-gradient-car') {
     renderPolicyGradientCarScene(ctx, canvas, state);
+  } else if (state.mode === 'ppo-figure-8') {
+    renderPPOFigure8Scene(ctx, canvas, state);
   } else {
     renderSimpleSimulationScene(ctx, canvas, state);
   }

@@ -28,4 +28,6 @@ it('includes pomdp and policy gradient car modes in default catalog', () => {
   expect(catalog.get('advanced')?.homeButtonLabel).toContain('Markov');
   expect(catalog.listModes()).toContain('policy-gradient-car');
   expect(catalog.get('policy-gradient-car')?.label).toBe('Policy Gradient Car');
+  expect(catalog.listModes()).toContain('ppo-figure-8');
+  expect(catalog.get('ppo-figure-8')?.label).toBe('PPO Figure-8');
 });

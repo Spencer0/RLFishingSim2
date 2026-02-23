@@ -1,6 +1,7 @@
 import { renderQTablePanel } from './domains/simple/qTablePanel.js';
 import { renderMathPanel } from './domains/simple/mathPanel.js';
 import { renderPolicyGradientCarMathPanel } from './domains/policyGradientCar/policyGradientCarMathPanel.js';
+import { renderPPOFigure8MathPanel } from './domains/ppoFigure8/ppoFigure8MathPanel.js';
 import { renderPOMDPQTablePanel } from './domains/pomdp/pomdpQTablePanel.js';
 import { renderPOMDPMathPanel } from './domains/pomdp/pomdpMathPanel.js';
 import { dominantBelief } from './domains/pomdp/pomdpBrain.js';
@@ -11,13 +12,15 @@ import { renderTribalRelationsPanel } from './domains/tribal/tribalRelationsPane
 import { renderTribalStrategyPanel } from './domains/tribal/tribalStrategyPanel.js';
 import { renderTribalMathPanel } from './domains/tribal/tribalMathPanel.js';
 import { renderPolicyVisualizationPanel, drawPolicyVisualization } from './domains/policyGradientCar/policyGradientCarVisualization.js';
+import { renderPPOFigure8VisualizationPanel, drawPPOFigure8Panels } from './domains/ppoFigure8/ppoFigure8Visualization.js';
 
 const MODE_STATUS_META = {
   simple: { inventoryEmoji: '🐟', inventoryLabel: 'Catch' },
   advanced: { inventoryEmoji: '🐟', inventoryLabel: 'Catch' },
   pomdp: { inventoryEmoji: '💊', inventoryLabel: 'Cures' },
   tribal: { inventoryEmoji: '🍖', inventoryLabel: 'Food' },
-  'policy-gradient-car': { inventoryEmoji: '🏁', inventoryLabel: 'Attempts' }
+  'policy-gradient-car': { inventoryEmoji: '🏁', inventoryLabel: 'Attempts' },
+  'ppo-figure-8': { inventoryEmoji: '🏁', inventoryLabel: 'Attempts' }
 };
 
 export function formatStatusReadout(state) {
@@ -29,6 +32,9 @@ export function formatStatusReadout(state) {
   const meta = MODE_STATUS_META[state.mode] ?? MODE_STATUS_META.simple;
   if (state.mode === 'policy-gradient-car') {
     return `Day ${state.day} · 🏁 ${state.fishInventory} ${meta.inventoryLabel} · ✅ ${state.policy?.totalCompletions ?? 0} Completions · Coins ${state.coins}`;
+  }
+  if (state.mode === 'ppo-figure-8') {
+    return `Day ${state.day} · 🏁 ${state.fishInventory} ${meta.inventoryLabel} · ♾️ ${state.policy?.consecutiveLaps ?? 0} Consecutive Laps · Coins ${state.coins}`;
   }
   return `Day ${state.day} · ${meta.inventoryEmoji} ${state.fishInventory} ${meta.inventoryLabel} · Coins ${state.coins}`;
 }
@@ -119,15 +125,22 @@ export class SimulationPanelController {
     if (tabId === 'mathPane') {
       const math = state.mode === 'policy-gradient-car'
         ? renderPolicyGradientCarMathPanel()
-        : (state.mode === 'pomdp'
-          ? renderPOMDPMathPanel()
-          : (state.mode === 'tribal' ? renderTribalMathPanel() : renderMathPanel()));
+        : (state.mode === 'ppo-figure-8'
+          ? renderPPOFigure8MathPanel()
+          : (state.mode === 'pomdp'
+            ? renderPOMDPMathPanel()
+            : (state.mode === 'tribal' ? renderTribalMathPanel() : renderMathPanel())));
       return `<div id="mathPanel">${math}</div>`;
     }
     if (tabId === 'qTablePane') {
       if (state.mode === 'policy-gradient-car') {
         const panel = renderPolicyVisualizationPanel(state);
         queueMicrotask(() => drawPolicyVisualization(state));
+        return `<div id="qtable">${panel}</div>`;
+      }
+      if (state.mode === 'ppo-figure-8') {
+        const panel = renderPPOFigure8VisualizationPanel(state);
+        queueMicrotask(() => drawPPOFigure8Panels(state, state.agent));
         return `<div id="qtable">${panel}</div>`;
       }
       const table = state.mode === 'pomdp' ? renderPOMDPQTablePanel(state) : (state.mode === 'tribal' ? renderTribalQTablePanel(state) : renderQTablePanel(state));
@@ -173,6 +186,17 @@ function renderBrainPanel(state) {
       <p><b>Last Action</b>: ${state.policy.lastAction.toFixed(3)}°</p>
       <p><b>Last Return</b>: ${state.policy.lastReturn.toFixed(3)}</p>
       <p><b>Last Loss</b>: ${state.policy.lastLoss.toFixed(4)}</p>
+      <p><b>Training</b>: ${state.trainingComplete ? 'Complete (frozen policy)' : 'In progress'}</p>`;
+  }
+
+  if (state.mode === 'ppo-figure-8') {
+    return `<p><b>Episodes</b>: ${state.policy.episode}</p>
+      <p><b>Consecutive figure-8 laps</b>: ${state.policy.consecutiveLaps} / 50</p>
+      <p><b>Current μ</b>: ${state.policy.lastMu.toFixed(3)}</p>
+      <p><b>Current σ</b>: ${state.policy.lastSigma.toFixed(3)}</p>
+      <p><b>Last Action</b>: ${state.policy.lastAction.toFixed(3)}°</p>
+      <p><b>Last GAE Mean</b>: ${state.policy.lastAdvantageMean.toFixed(4)}</p>
+      <p><b>Actor LR</b>: ${state.policy.actorLr.toExponential(2)} | <b>Critic LR</b>: ${state.policy.criticLr.toExponential(2)}</p>
       <p><b>Training</b>: ${state.trainingComplete ? 'Complete (frozen policy)' : 'In progress'}</p>`;
   }
 
