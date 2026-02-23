@@ -2,7 +2,9 @@ const DEFAULT_TARGET_FPS = 60;
 const MINUTES_PER_DAY = 16 * 60;
 const DEFAULT_SIMULATION_SPEED = 10;
 const BASE_MINUTES_PER_SECOND = MINUTES_PER_DAY / 10;
-const SIMULATION_STEP_MS = 10;
+const MAX_SIMULATION_SPEED = 1000;
+const SIMULATION_STEP_MS = 1000 / DEFAULT_TARGET_FPS;
+const MAX_SIMULATION_STEPS_PER_FRAME = 1;
 
 export class SimulationLoop {
   constructor({
@@ -35,7 +37,7 @@ export class SimulationLoop {
   setSimulationSpeed(nextSpeed) {
     const parsedSpeed = Number(nextSpeed);
     if (!Number.isFinite(parsedSpeed)) return;
-    this.simulationSpeed = Math.max(1, Math.min(100, parsedSpeed));
+    this.simulationSpeed = Math.max(1, Math.min(MAX_SIMULATION_SPEED, parsedSpeed));
   }
 
   getSimulationSpeed() {
@@ -76,7 +78,12 @@ export class SimulationLoop {
     let didSimulationAdvance = false;
     if (simulation.getState().isPlaying) {
       this.simulationAccumulator += elapsedMs;
-      while (this.simulationAccumulator >= this.simulationStepMs) {
+      const stepsToRun = Math.min(
+        MAX_SIMULATION_STEPS_PER_FRAME,
+        Math.floor(this.simulationAccumulator / this.simulationStepMs)
+      );
+
+      for (let step = 0; step < stepsToRun; step += 1) {
         const simulatedMinutesThisFrame = (this.simulationStepMs / 1000) * this.getSimulationMinutesPerSecond();
         let remainingMinutes = simulatedMinutesThisFrame;
         while (remainingMinutes > 0) {
@@ -87,11 +94,15 @@ export class SimulationLoop {
         this.simulationAccumulator -= this.simulationStepMs;
         didSimulationAdvance = true;
       }
+
+      if (this.simulationAccumulator >= this.simulationStepMs) {
+        this.simulationAccumulator %= this.simulationStepMs;
+      }
     }
 
     const state = simulation.getState();
     this.onDraw?.(state);
-    if (didSimulationAdvance) this.onSimulationAdvanced?.(state);
+    if (didSimulationAdvance) this.onSimulationAdvanced?.(state, elapsedMs);
 
     this.frameId = this.requestFrame(this.handleFrame);
   }
