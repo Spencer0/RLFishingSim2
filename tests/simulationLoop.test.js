@@ -76,8 +76,8 @@ describe('SimulationLoop', () => {
   it('clamps simulation speed to accepted bounds', () => {
     const loop = new SimulationLoop();
 
-    loop.setSimulationSpeed(500);
-    expect(loop.getSimulationSpeed()).toBe(100);
+    loop.setSimulationSpeed(5000);
+    expect(loop.getSimulationSpeed()).toBe(1000);
 
     loop.setSimulationSpeed(0);
     expect(loop.getSimulationSpeed()).toBe(1);
@@ -87,6 +87,39 @@ describe('SimulationLoop', () => {
 
     loop.setSimulationSpeed('not-a-number');
     expect(loop.getSimulationSpeed()).toBe(25);
+  });
+
+  it('limits simulation ticking to 60 fps cadence even after long frame gaps', () => {
+    let frameCallback = null;
+    const simulation = {
+      state: { isPlaying: true, mode: 'simple' },
+      tickCalls: 0,
+      getState() { return this.state; },
+      tick() { this.tickCalls += 1; }
+    };
+
+    const loop = new SimulationLoop({
+      requestFrame: (cb) => {
+        frameCallback = cb;
+        return 1;
+      },
+      cancelFrame: () => {}
+    });
+
+    loop.start({
+      getSimulation: () => simulation,
+      onDraw: () => {},
+      onSimulationAdvanced: () => {}
+    });
+
+    frameCallback(1000 + 250);
+    expect(simulation.tickCalls).toBeGreaterThan(0);
+
+    const firstFrameTicks = simulation.tickCalls;
+    frameCallback(1000 + 500);
+    const secondFrameTicks = simulation.tickCalls - firstFrameTicks;
+
+    expect(secondFrameTicks).toBeLessThanOrEqual(firstFrameTicks);
   });
 
 });
