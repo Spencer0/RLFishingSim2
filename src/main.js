@@ -7,6 +7,13 @@ import { SimulationLoop } from './simulationLoop.js';
 import { SimulationPanelController } from './simulationPanelController.js';
 import { renderTribalScene } from './tribalRenderer.js';
 import { renderPolicyGradientCarScene } from './policyGradientCarRenderer.js';
+import {
+  DEPLOYMENT_EPISODES_PER_LANE,
+  DEPLOYMENT_LANES,
+  DEPLOYMENT_SIMULATION_SPEED,
+  DeploymentLaneRunner,
+  createDeploymentScore
+} from './policyDeployment.js';
 
 const app = document.querySelector('#app');
 if (!app) throw new Error('Missing app');
@@ -15,6 +22,7 @@ const simulationCatalog = createDefaultSimulationCatalog();
 const simulationLoop = new SimulationLoop();
 
 let activeSimulation = null;
+let deploymentLoopHandle = null;
 
 renderHomeScreen();
 
@@ -41,7 +49,6 @@ function renderHomeScreen() {
   });
 }
 
-
 function getTabsForConfig(config) {
   if (config.tabs?.length) return config.tabs;
   const tabs = [
@@ -61,8 +68,15 @@ function startSimulation(mode) {
 
   activeSimulation = config.createSimulation();
 
+  const deployButtonMarkup = config.supportsDeployment
+    ? '<button id="deployModel" class="btn deploy" aria-label="Deploy trained model">🚀 Deploy the model!</button>'
+    : '';
+  const deployFooterMarkup = deployButtonMarkup
+    ? `<footer class="simulation-footer">${deployButtonMarkup}</footer>`
+    : '';
+
   app.innerHTML = `
-  <div class="layout">
+  <div class="layout simulation-layout">
     <header class="topbar glass">
       <div>
         <h1><span aria-hidden="true">${config.titleEmoji}</span> ${(config.titleText ?? 'RL Simulator')} (${config.label})</h1>
@@ -93,6 +107,7 @@ function startSimulation(mode) {
         </div>
       </section>
     </main>
+    ${deployFooterMarkup}
   </div>`;
 
   const canvas = document.querySelector('#world');
@@ -139,6 +154,17 @@ function startSimulation(mode) {
     refreshPanels();
   });
 
+  document.querySelector('#deployModel')?.addEventListener('click', () => {
+    if (!activeSimulation || typeof activeSimulation.getDeploymentSnapshot !== 'function') return;
+    const snapshot = activeSimulation.getDeploymentSnapshot();
+    if (!snapshot) return;
+    startDeploymentView({
+      mode,
+      config,
+      snapshot
+    });
+  });
+
   simulationLoop.setSimulationSpeed(10);
   if (speedSlider) speedSlider.value = String(simulationLoop.getSimulationSpeed());
   setSpeedUiState(simulationLoop.getSimulationSpeed());
@@ -157,6 +183,131 @@ function startSimulation(mode) {
   });
 }
 
+function startDeploymentView({ mode, config, snapshot }) {
+  stopSimulation();
+
+  const params = new URLSearchParams(window.location.search);
+  const deploymentLanes = Number(params.get('deployLanes')) || DEPLOYMENT_LANES;
+  const deploymentEpisodes = Number(params.get('deployEpisodes')) || DEPLOYMENT_EPISODES_PER_LANE;
+  const deploymentSpeed = Number(params.get('deploySpeed')) || DEPLOYMENT_SIMULATION_SPEED;
+
+  const lanes = Array.from({ length: deploymentLanes }, (_, index) => new DeploymentLaneRunner({
+    id: index + 1,
+    episodesTarget: deploymentEpisodes,
+    networkSnapshot: snapshot.network
+  }));
+
+  app.innerHTML = `
+  <div class="layout deployment-layout">
+    <header class="topbar glass deployment-header">
+      <div>
+        <h1>🚀 Deploy the model! (${config.label})</h1>
+        <p class="subtitle">Running ${deploymentLanes} parallel simulations at ${deploymentSpeed}x speed for ${deploymentEpisodes} attempts each.</p>
+      </div>
+      <button id="goHome" class="btn secondary">Home</button>
+      <div id="deploymentStats" class="stats-pill">Initializing deployment…</div>
+    </header>
+    <main class="deployment-content">
+      <section id="deploymentGrid" class="deployment-grid" aria-label="Parallel deployment simulations"></section>
+    </main>
+    <div id="deploymentResultModal" class="deploy-modal hidden" role="dialog" aria-modal="true" aria-label="Deployment score modal">
+      <div class="deploy-modal-card glass">
+        <h2 id="deploymentScore">You scored 0 / 0!</h2>
+        <p>Model deployment finished across all simulation lanes.</p>
+        <div class="deploy-modal-actions">
+          <button id="deploymentReset" class="btn">Reset</button>
+          <button id="deploymentHome" class="btn secondary">Home</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  const grid = document.querySelector('#deploymentGrid');
+  const stats = document.querySelector('#deploymentStats');
+  const modal = document.querySelector('#deploymentResultModal');
+  const scoreHeading = document.querySelector('#deploymentScore');
+
+  const isMobile = window.matchMedia('(max-width: 720px)').matches;
+  const visibleLaneCount = isMobile ? 1 : deploymentLanes;
+  const laneViews = lanes.slice(0, visibleLaneCount).map((lane) => {
+    const laneElement = document.createElement('article');
+    laneElement.className = 'deployment-lane glass';
+    laneElement.innerHTML = `
+      <header>
+        <h3>Lane ${lane.id}</h3>
+        <p data-lane-meta>0 / ${deploymentEpisodes}</p>
+      </header>
+      <canvas width="320" height="200" aria-label="Deployment lane ${lane.id}"></canvas>
+    `;
+    grid?.appendChild(laneElement);
+
+    return {
+      lane,
+      laneElement,
+      meta: laneElement.querySelector('[data-lane-meta]'),
+      canvas: laneElement.querySelector('canvas'),
+      context: laneElement.querySelector('canvas')?.getContext('2d')
+    };
+  });
+
+  const openResults = () => {
+    const progress = lanes.map((lane) => lane.getProgress());
+    const score = createDeploymentScore(progress, deploymentEpisodes);
+    if (scoreHeading) {
+      scoreHeading.textContent = `You scored ${score.score} / ${score.maxScore}!`;
+    }
+    modal?.classList.remove('hidden');
+    grid?.classList.add('collapsed');
+  };
+
+  const updateFrame = () => {
+    let allDone = true;
+    lanes.forEach((lane) => {
+      lane.runTicks(deploymentSpeed);
+      if (!lane.getProgress().done) allDone = false;
+    });
+
+    const progress = lanes.map((lane) => lane.getProgress());
+    const completedEpisodes = progress.reduce((sum, lane) => sum + lane.completedEpisodes, 0);
+    const totalEpisodes = deploymentLanes * deploymentEpisodes;
+    const totalSuccesses = progress.reduce((sum, lane) => sum + lane.successes, 0);
+    if (stats) {
+      stats.textContent = `Runs ${completedEpisodes}/${totalEpisodes} · Finishes ${totalSuccesses}`;
+    }
+
+    for (const laneView of laneViews) {
+      const laneProgress = laneView.lane.getProgress();
+      if (laneView.meta) {
+        laneView.meta.textContent = `${laneProgress.completedEpisodes} / ${laneProgress.episodesTarget} · ✅ ${laneProgress.successes}`;
+      }
+      if (laneView.context && laneView.canvas && laneProgress.transition) {
+        const state = {
+          mode,
+          car: laneProgress.transition.car,
+          track: laneProgress.transition.track,
+          carCrashFrame: laneProgress.transition.event === 'crash' ? 2 : 0,
+          trainingComplete: false
+        };
+        renderPolicyGradientCarScene(laneView.context, laneView.canvas, state);
+      }
+    }
+
+    if (allDone) {
+      deploymentLoopHandle = null;
+      openResults();
+      return;
+    }
+
+    deploymentLoopHandle = window.requestAnimationFrame(updateFrame);
+  };
+
+  deploymentLoopHandle = window.requestAnimationFrame(updateFrame);
+
+  document.querySelector('#goHome')?.addEventListener('click', renderHomeScreen);
+  document.querySelector('#deploymentHome')?.addEventListener('click', renderHomeScreen);
+  document.querySelector('#deploymentReset')?.addEventListener('click', () => startSimulation(mode));
+}
+
 function drawWorld(ctx, canvas, state) {
   if (state.mode === 'advanced') {
     renderAdvancedSimulationScene(ctx, canvas, state);
@@ -173,5 +324,9 @@ function drawWorld(ctx, canvas, state) {
 
 function stopSimulation() {
   simulationLoop.stop();
+  if (deploymentLoopHandle !== null) {
+    window.cancelAnimationFrame(deploymentLoopHandle);
+    deploymentLoopHandle = null;
+  }
   activeSimulation = null;
 }

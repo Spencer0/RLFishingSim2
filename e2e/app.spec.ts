@@ -69,3 +69,16 @@ test('simulation speed slider can be toggled', async ({ page }) => {
   await slider.fill('5');
   await expect(speedLabel).toHaveText('5x');
 });
+
+
+test('can deploy policy gradient model and see deployment score modal', async ({ page }) => {
+  await page.goto('/?deployLanes=2&deployEpisodes=2&deploySpeed=120');
+  await page.getByRole('button', { name: 'Policy Gradient Car' }).click();
+
+  await expect(page.getByRole('button', { name: 'Deploy trained model' })).toBeVisible();
+  await page.getByRole('button', { name: 'Deploy trained model' }).click();
+
+  await expect(page.getByRole('heading', { name: /Deploy the model!/ })).toBeVisible();
+  await expect(page.locator('#deploymentResultModal')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('#deploymentScore')).toContainText(/You scored/);
+});

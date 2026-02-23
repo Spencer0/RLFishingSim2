@@ -122,4 +122,29 @@ export class NeuralNetwork {
     applyLayer('layer2', 8, 16);
     applyLayer('layer3', 2, 8);
   }
+
+  toSnapshot() {
+    const cloneLayer = (layer) => ({
+      weights: layer.weights.map((row) => [...row]),
+      biases: [...layer.biases]
+    });
+
+    return {
+      layer1: cloneLayer(this.layer1),
+      layer2: cloneLayer(this.layer2),
+      layer3: cloneLayer(this.layer3)
+    };
+  }
+
+  loadSnapshot(snapshot) {
+    if (!snapshot) return;
+    const cloneLayer = (layer) => ({
+      weights: layer.weights.map((row) => [...row]),
+      biases: [...layer.biases]
+    });
+
+    this.layer1 = cloneLayer(snapshot.layer1);
+    this.layer2 = cloneLayer(snapshot.layer2);
+    this.layer3 = cloneLayer(snapshot.layer3);
+  }
 }
