@@ -227,16 +227,15 @@ function startDeploymentView({ mode, config, snapshot }) {
   const modal = document.querySelector('#deploymentResultModal');
   const scoreHeading = document.querySelector('#deploymentScore');
 
-  const isMobile = window.matchMedia('(max-width: 720px)').matches;
-  const visibleLaneCount = isMobile ? 1 : deploymentLanes;
+  const visibleLaneCount = deploymentLanes;
   const laneViews = lanes.slice(0, visibleLaneCount).map((lane) => {
     const laneElement = document.createElement('article');
-    laneElement.className = 'deployment-lane glass';
+    laneElement.className = 'deployment-lane';
     laneElement.innerHTML = `
-      <header>
+      <div class="deployment-lane-overlay">
         <h3>Lane ${lane.id}</h3>
         <p data-lane-meta>0 / ${deploymentEpisodes}</p>
-      </header>
+      </div>
       <canvas width="320" height="200" aria-label="Deployment lane ${lane.id}"></canvas>
     `;
     grid?.appendChild(laneElement);
