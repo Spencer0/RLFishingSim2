@@ -78,6 +78,7 @@ export function createDefaultSimulationCatalog() {
       { id: 'qTablePane', label: '📉 Policy Visualization' },
       { id: 'mathPane', label: '∑ Math' }
     ],
+    supportsDeployment: true,
     createSimulation: () => new PolicyGradientCarSimulation()
   });
 

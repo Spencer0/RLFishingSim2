@@ -53,6 +53,14 @@ export class PolicyGradientCarSimulation {
   getState() { return this.state; }
   togglePlay() { this.state.isPlaying = !this.state.isPlaying; }
 
+  getDeploymentSnapshot() {
+    return {
+      mode: this.mode,
+      network: this.agent.network.toSnapshot()
+    };
+  }
+
+
   tick() {
     if (!this.state.isPlaying) return;
 
