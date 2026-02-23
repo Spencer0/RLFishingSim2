@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DeploymentLaneRunner,
   createDeploymentScore
-} from '../src/policyDeployment.js';
+} from '../src/domains/policyGradientCar/policyDeployment.js';
 
 class StubEnvironment {
   constructor(outcomes) {

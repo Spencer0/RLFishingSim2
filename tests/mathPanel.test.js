@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderMathPanel } from '../src/mathPanel.js';
+import { renderMathPanel } from '../src/domains/simple/mathPanel.js';
 
 describe('renderMathPanel', () => {
   it('renders the Q-learning formula and explanatory sections', () => {

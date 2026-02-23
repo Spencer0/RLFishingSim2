@@ -1,19 +1,19 @@
-import { renderSimpleSimulationScene } from './simpleRenderer.js';
-import { renderAdvancedSimulationScene } from './advancedRenderer.js';
+import { renderSimpleSimulationScene } from './domains/simple/simpleRenderer.js';
+import { renderAdvancedSimulationScene } from './domains/advanced/advancedRenderer.js';
 import { createDefaultSimulationCatalog } from './simulationCatalog.js';
-import { renderPOMDPScene } from './pomdpRenderer.js';
+import { renderPOMDPScene } from './domains/pomdp/pomdpRenderer.js';
 import { buildPanelRenderKey } from './panelState.js';
 import { SimulationLoop } from './simulationLoop.js';
 import { SimulationPanelController } from './simulationPanelController.js';
-import { renderTribalScene } from './tribalRenderer.js';
-import { renderPolicyGradientCarScene } from './policyGradientCarRenderer.js';
+import { renderTribalScene } from './domains/tribal/tribalRenderer.js';
+import { renderPolicyGradientCarScene } from './domains/policyGradientCar/policyGradientCarRenderer.js';
 import {
   DEPLOYMENT_EPISODES_PER_LANE,
   DEPLOYMENT_LANES,
   DEPLOYMENT_SIMULATION_SPEED,
   DeploymentLaneRunner,
   createDeploymentScore
-} from './policyDeployment.js';
+} from './domains/policyGradientCar/policyDeployment.js';
 
 const app = document.querySelector('#app');
 if (!app) throw new Error('Missing app');

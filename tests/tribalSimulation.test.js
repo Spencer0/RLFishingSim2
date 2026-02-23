@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { TribalSimulation, detectNashEquilibrium, resolveActions } from '../src/tribalSimulation.js';
-import { TribalBrain } from '../src/tribalBrain.js';
+import { TribalSimulation, detectNashEquilibrium, resolveActions } from '../src/domains/tribal/tribalSimulation.js';
+import { TribalBrain } from '../src/domains/tribal/tribalBrain.js';
 
 describe('tribal simulation', () => {
   it('resolves trade trade baseline', () => {

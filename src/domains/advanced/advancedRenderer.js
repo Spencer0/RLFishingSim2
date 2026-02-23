@@ -1,4 +1,4 @@
-import { drawFisher, drawHouse, drawMarket, drawWater, paintWorldBackground, setupCanvas } from './scenePrimitives.js';
+import { drawFisher, drawHouse, drawMarket, drawWater, paintWorldBackground, setupCanvas } from '../../shared/primitives/scenePrimitives.js';
 
 export function renderAdvancedSimulationScene(context, canvas, state) {
   const scene = setupCanvas(context, canvas);

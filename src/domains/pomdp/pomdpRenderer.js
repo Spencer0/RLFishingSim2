@@ -1,4 +1,4 @@
-import { drawFisher, drawHabitatEmblem, roundRect, setupCanvas } from './scenePrimitives.js';
+import { drawFisher, drawHabitatEmblem, roundRect, setupCanvas } from '../../shared/primitives/scenePrimitives.js';
 import { dominantBelief } from './pomdpBrain.js';
 
 const LOCATIONS = {

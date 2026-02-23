@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { NeuralNetwork } from '../src/policyGradientCarNetwork.js';
-import { randomGaussian, discountedReturns, gaussianLogProbability } from '../src/policyGradientCarMath.js';
-import { CarEnvironment } from '../src/policyGradientCarEnvironment.js';
-import { PolicyGradientCarSimulation } from '../src/policyGradientCarSimulation.js';
-import { PolicyGradientAgent } from '../src/policyGradientCarAgent.js';
+import { NeuralNetwork } from '../src/domains/policyGradientCar/policyGradientCarNetwork.js';
+import { randomGaussian, discountedReturns, gaussianLogProbability } from '../src/domains/policyGradientCar/policyGradientCarMath.js';
+import { CarEnvironment } from '../src/domains/policyGradientCar/policyGradientCarEnvironment.js';
+import { PolicyGradientCarSimulation } from '../src/domains/policyGradientCar/policyGradientCarSimulation.js';
+import { PolicyGradientAgent } from '../src/domains/policyGradientCar/policyGradientCarAgent.js';
 
 describe('Policy Gradient Car', () => {
   it('forward pass output shape is length 2', () => {

@@ -1,16 +1,16 @@
-import { renderQTablePanel } from './qTablePanel.js';
-import { renderMathPanel } from './mathPanel.js';
-import { renderPolicyGradientCarMathPanel } from './policyGradientCarMathPanel.js';
-import { renderPOMDPQTablePanel } from './pomdpQTablePanel.js';
-import { renderPOMDPMathPanel } from './pomdpMathPanel.js';
-import { dominantBelief } from './pomdpBrain.js';
-import { computeBeliefAccuracy } from './pomdpSimulation.js';
-import { renderTribalPayoffPanel } from './tribalPayoffPanel.js';
-import { renderTribalQTablePanel } from './tribalQTablePanel.js';
-import { renderTribalRelationsPanel } from './tribalRelationsPanel.js';
-import { renderTribalStrategyPanel } from './tribalStrategyPanel.js';
-import { renderTribalMathPanel } from './tribalMathPanel.js';
-import { renderPolicyVisualizationPanel, drawPolicyVisualization } from './policyGradientCarVisualization.js';
+import { renderQTablePanel } from './domains/simple/qTablePanel.js';
+import { renderMathPanel } from './domains/simple/mathPanel.js';
+import { renderPolicyGradientCarMathPanel } from './domains/policyGradientCar/policyGradientCarMathPanel.js';
+import { renderPOMDPQTablePanel } from './domains/pomdp/pomdpQTablePanel.js';
+import { renderPOMDPMathPanel } from './domains/pomdp/pomdpMathPanel.js';
+import { dominantBelief } from './domains/pomdp/pomdpBrain.js';
+import { computeBeliefAccuracy } from './domains/pomdp/pomdpSimulation.js';
+import { renderTribalPayoffPanel } from './domains/tribal/tribalPayoffPanel.js';
+import { renderTribalQTablePanel } from './domains/tribal/tribalQTablePanel.js';
+import { renderTribalRelationsPanel } from './domains/tribal/tribalRelationsPanel.js';
+import { renderTribalStrategyPanel } from './domains/tribal/tribalStrategyPanel.js';
+import { renderTribalMathPanel } from './domains/tribal/tribalMathPanel.js';
+import { renderPolicyVisualizationPanel, drawPolicyVisualization } from './domains/policyGradientCar/policyGradientCarVisualization.js';
 
 const MODE_STATUS_META = {
   simple: { inventoryEmoji: '🐟', inventoryLabel: 'Catch' },

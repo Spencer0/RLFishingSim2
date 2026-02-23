@@ -1,3 +1,5 @@
+import { chooseEpsilonGreedyAction, computeTemporalDifferenceUpdatedQValue } from '../../shared/rl/qLearning.js';
+
 const ACTIONS = ['hunt', 'fish', 'trade', 'raid'];
 
 function bucketFood(food) {
@@ -29,17 +31,16 @@ export class TribalBrain {
     this.stateVisits[stateKey] = this.stateVisits[stateKey] ?? 0;
   }
 
-  chooseAction(stateKey) {
+  chooseAction(stateKey, randomValue = Math.random()) {
     this.ensureState(stateKey);
     this.stateVisits[stateKey] += 1;
 
-    if (Math.random() < this.epsilon) {
-      return ACTIONS[Math.floor(Math.random() * ACTIONS.length)];
-    }
-
-    return ACTIONS.reduce((bestAction, action) => (
-      this.qTable[stateKey][action] > this.qTable[stateKey][bestAction] ? action : bestAction
-    ), ACTIONS[0]);
+    return chooseEpsilonGreedyAction({
+      actionValuesByName: this.qTable[stateKey],
+      actionNames: ACTIONS,
+      explorationRate: this.epsilon,
+      randomValue
+    });
   }
 
   update(stateKey, action, reward, nextStateKey) {
@@ -47,7 +48,13 @@ export class TribalBrain {
     this.ensureState(nextStateKey);
     const currentQ = this.qTable[stateKey][action];
     const maxNextQ = Math.max(...ACTIONS.map((nextAction) => this.qTable[nextStateKey][nextAction]));
-    const updatedQ = currentQ + this.alpha * (reward + this.gamma * maxNextQ - currentQ);
+    const updatedQ = computeTemporalDifferenceUpdatedQValue({
+      currentQValue: currentQ,
+      rewardValue: reward,
+      learningRate: this.alpha,
+      discountFactor: this.gamma,
+      maxNextQValue: maxNextQ
+    });
     this.qTable[stateKey][action] = updatedQ;
     this.totalReward += reward;
   }

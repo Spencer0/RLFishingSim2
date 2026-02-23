@@ -1,4 +1,4 @@
-import { setupCanvas } from './scenePrimitives.js';
+import { setupCanvas } from '../../shared/primitives/scenePrimitives.js';
 import { drawSvg } from './tribalSceneArt.js';
 
 const ACTION_ICON = { hunt: '🏹', fish: '🐟', trade: '🤝', raid: '⚡' };

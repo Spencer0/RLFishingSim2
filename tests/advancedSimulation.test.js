@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AdvancedFishingSimulation } from '../src/advancedSimulation.js';
+import { AdvancedFishingSimulation } from '../src/domains/advanced/advancedSimulation.js';
 
 describe('AdvancedFishingSimulation', () => {
   it('reduces stock and schedules replenishment steps for actions on other spots', () => {

@@ -1,3 +1,5 @@
+import { chooseEpsilonGreedyAction, computeTemporalDifferenceUpdatedQValue } from '../../shared/rl/qLearning.js';
+
 const ACTIONS = ['lake', 'river', 'ocean'];
 
 export class TabularMarkovBrain {
@@ -17,14 +19,12 @@ export class TabularMarkovBrain {
 
   chooseAction(stateKey, randomValue = Math.random()) {
     this.ensureState(stateKey);
-    if (randomValue < this.epsilon) {
-      const index = Math.floor((randomValue / this.epsilon) * ACTIONS.length);
-      return ACTIONS[Math.min(index, ACTIONS.length - 1)];
-    }
-
-    return ACTIONS.reduce((bestAction, currentAction) => (
-      this.qTable[stateKey][currentAction] > this.qTable[stateKey][bestAction] ? currentAction : bestAction
-    ), ACTIONS[0]);
+    return chooseEpsilonGreedyAction({
+      actionValuesByName: this.qTable[stateKey],
+      actionNames: ACTIONS,
+      explorationRate: this.epsilon,
+      randomValue
+    });
   }
 
   update(stateKey, action, reward, nextStateKey) {
@@ -32,7 +32,13 @@ export class TabularMarkovBrain {
     this.ensureState(nextStateKey);
     const currentQ = this.qTable[stateKey][action];
     const maxNextQ = Math.max(...ACTIONS.map((candidateAction) => this.qTable[nextStateKey][candidateAction]));
-    const updatedQ = currentQ + this.alpha * (reward + this.gamma * maxNextQ - currentQ);
+    const updatedQ = computeTemporalDifferenceUpdatedQValue({
+      currentQValue: currentQ,
+      rewardValue: reward,
+      learningRate: this.alpha,
+      discountFactor: this.gamma,
+      maxNextQValue: maxNextQ
+    });
     this.qTable[stateKey][action] = updatedQ;
     this.totalReward += reward;
   }

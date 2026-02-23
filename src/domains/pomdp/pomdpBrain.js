@@ -1,3 +1,5 @@
+import { chooseEpsilonGreedyAction, computeTemporalDifferenceUpdatedQValue } from '../../shared/rl/qLearning.js';
+
 const HABITATS = ['wetland', 'forest', 'savanna'];
 const STATES = ['low', 'medium', 'high'];
 const ACTIONS = HABITATS;
@@ -64,14 +66,12 @@ export class POMDPBrain {
 
   chooseAction(stateKey, randomValue = Math.random()) {
     this.ensureState(stateKey);
-    if (randomValue < this.epsilon) {
-      const index = Math.floor((randomValue / this.epsilon) * ACTIONS.length);
-      return ACTIONS[Math.min(index, ACTIONS.length - 1)];
-    }
-
-    return ACTIONS.reduce((bestAction, candidate) => (
-      this.qTable[stateKey][candidate] > this.qTable[stateKey][bestAction] ? candidate : bestAction
-    ), ACTIONS[0]);
+    return chooseEpsilonGreedyAction({
+      actionValuesByName: this.qTable[stateKey],
+      actionNames: ACTIONS,
+      explorationRate: this.epsilon,
+      randomValue
+    });
   }
 
   update(stateKey, action, reward, nextStateKey) {
@@ -79,7 +79,13 @@ export class POMDPBrain {
     this.ensureState(nextStateKey);
     const currentQ = this.qTable[stateKey][action];
     const maxNextQ = Math.max(...ACTIONS.map((candidate) => this.qTable[nextStateKey][candidate]));
-    this.qTable[stateKey][action] = currentQ + this.alpha * (reward + this.gamma * maxNextQ - currentQ);
+    this.qTable[stateKey][action] = computeTemporalDifferenceUpdatedQValue({
+      currentQValue: currentQ,
+      rewardValue: reward,
+      learningRate: this.alpha,
+      discountFactor: this.gamma,
+      maxNextQValue: maxNextQ
+    });
     this.totalReward += reward;
   }
 
