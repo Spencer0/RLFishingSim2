@@ -89,7 +89,7 @@ function startSimulation(mode) {
       <button id="playPause" class="btn">Pause</button>
       <div class="sim-speed-wrap" aria-label="Simulation speed controls">
         <label for="simSpeed" class="sim-speed-label">Speed <span id="simSpeedValue">10x</span></label>
-        <input id="simSpeed" class="sim-speed-slider" type="range" min="1" max="1000" step="1" value="10" aria-label="Simulation speed from one to one thousand times" />
+        <input id="simSpeed" class="sim-speed-slider" type="range" min="1" max="1000" step="1" value="10" aria-label="Simulation speed from one to one hundred times" />
       </div>
       <div id="stats" class="stats-pill"></div>
     </header>
