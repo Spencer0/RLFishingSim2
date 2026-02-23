@@ -37,6 +37,20 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Generate unit test coverage report
+        run: npm run test:coverage
+
+      - name: Evaluate aspirational 100% coverage gate (non-blocking)
+        continue-on-error: true
+        run: npm run test:coverage:strict
+
+      - name: Upload coverage report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage
+
       - name: Build app
         run: npm run build
 

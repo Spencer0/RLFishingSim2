@@ -9,10 +9,13 @@
     "preview": "vite preview",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:coverage:strict": "vitest run --coverage --coverage.thresholds.lines=100 --coverage.thresholds.functions=100 --coverage.thresholds.branches=100 --coverage.thresholds.statements=100",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "typescript": "^5.8.3",
     "vite": "^5.4.11",
     "vitest": "^2.1.8"
